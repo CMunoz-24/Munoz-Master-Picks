@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Details | Muñoz Master Picks</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h2 {
+      color: #0050EF;
+    }
+    .props, .recommendation {
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 8px;
+      text-align: left;
+    }
+    .back-link {
+      margin-top: 20px;
+    }
+    a {
+      color: #0050EF;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>{{ game.teams }}</h2>
+
+    <div class="recommendation">
+      <h3>🧠 Suggested Bet</h3>
+      <p><strong>Moneyline:</strong> {{ (game.ml * 100) | round(1) }}%</p>
+      <p><strong>Spread:</strong> {{ (game.spread * 100) | round(1) }}%</p>
+      <p><strong>Over/Under:</strong> {{ (game.ou * 100) | round(1) }}%</p>
+    </div>
+
+    <div class="props">
+      <h3>📊 Player Prop Probabilities</h3>
+      <ul>
+        {% for p in game.players %}
+          <li>
+            <strong>{{ p.name }}</strong> — 
+            Hits: {{ (p.Hits * 100) | round(1) }}%, 
+            HR: {{ (p.HR * 100) | round(1) }}%, 
+            Walks: {{ (p.Walks * 100) | round(1) }}%
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="back-link">
+      <a href="/home">← Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
