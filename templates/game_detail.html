@@ -5,20 +5,20 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
             padding: 20px;
         }
         h1, h2 {
-            color: #333;
+            color: #222;
         }
         .team-section {
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
         table {
             width: 100%;
-            background-color: white;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 10px;
+            background-color: #fff;
         }
         th, td {
             border: 1px solid #ccc;
@@ -26,12 +26,8 @@
             text-align: center;
         }
         th {
-            background-color: #003366;
+            background-color: #0054a6;
             color: white;
-        }
-        .stat-line {
-            font-size: 0.9em;
-            color: #555;
         }
     </style>
 </head>
@@ -45,91 +41,66 @@
         <table>
             <tr>
                 <th>Player</th>
-                <th>Total Bases</th>
-                <th>Home Runs</th>
-                <th>On-Base</th>
+                <th>Hits</th>
+                <th>HR</th>
+                <th>Walks</th>
             </tr>
             {% for player in players %}
             <tr>
-                <td>
-                    {{ player.name }}
-                    <div class="stat-line">
-                        AVG: {{ player.SeasonStats.avg or "N/A" }},
-                        OBP: {{ player.SeasonStats.obp or "N/A" }},
-                        HR: {{ player.SeasonStats.hr or "N/A" }}
-                    </div>
-                </td>
-                <td>
-                    {% if player.Recommendations["Total Bases"] %}
-                        {{ player.Recommendations["Total Bases"] }}
-                    {% else %} — {% endif %}
-                </td>
-                <td>
-                    {% if player.Recommendations["Home Run Prop"] %}
-                        {{ player.Recommendations["Home Run Prop"] }}
-                    {% else %} — {% endif %}
-                </td>
-                <td>
-                    {% if player.Recommendations["On-Base Prop"] %}
-                        {{ player.Recommendations["On-Base Prop"] }}
-                    {% else %} — {% endif %}
-                </td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.Hits }}{% if player.Recommendations %} → {{ player.Recommendations.Hits }}{% endif %}</td>
+                <td>{{ player.HR }}{% if player.Recommendations %} → {{ player.Recommendations.HR }}{% endif %}</td>
+                <td>{{ player.Walks }}{% if player.Recommendations %} → {{ player.Recommendations.Walks }}{% endif %}</td>
             </tr>
             {% endfor %}
         </table>
     </div>
     {% endfor %}
-
     {% for team, players in game.pitchers.items() %}
-    <div class="team-section">
+    <div class="team-section" style="margin-top: 40px;">
         <h2>{{ team }} - Pitchers</h2>
         <table>
             <tr>
                 <th>Player</th>
                 <th>Strikeouts</th>
+                <th>Outs</th>
+                <th>Walks Allowed</th>
                 <th>Hits Allowed</th>
                 <th>Earned Runs</th>
             </tr>
             {% for player in players %}
             <tr>
-                <td>
-                    {{ player.name }}
-                    <div class="stat-line">
-                        ERA: {{ player.SeasonStats.era or "N/A" }},
-                        WHIP: {{ player.SeasonStats.whip or "N/A" }},
-                        K/9: {{ player.SeasonStats.so9 or "N/A" }}
-                    </div>
-                </td>
-                <td>
-                    {% if player.Recommendations["Strikeouts Prop"] %}
-                        {{ player.Recommendations["Strikeouts Prop"] }}
-                    {% else %} — {% endif %}
-                </td>
-                <td>
-                    {% if player.Recommendations["Hits Allowed Prop"] %}
-                        {{ player.Recommendations["Hits Allowed Prop"] }}
-                    {% else %} — {% endif %}
-                </td>
-                <td>
-                    {% if player.Recommendations["Earned Runs Prop"] %}
-                        {{ player.Recommendations["Earned Runs Prop"] }}
-                    {% else %} — {% endif %}
-                </td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.Strikeouts }}{% if player.Recommendations %} → {{ player.Recommendations["Strikeouts"] }}{% endif %}</td>
+                <td>{{ player.Outs }}{% if player.Recommendations %} → {{ player.Recommendations["Outs"] }}{% endif %}</td>
+                <td>{{ player["Walks Allowed"] }}{% if player.Recommendations %} → {{ player.Recommendations["Walks Allowed"] }}{% endif %}</td>
+                <td>{{ player["Hits Allowed"] }}{% if player.Recommendations %} → {{ player.Recommendations["Hits Allowed"] }}{% endif %}</td>
+                <td>{{ player["Earned Runs"] }}{% if player.Recommendations %} → {{ player.Recommendations["Earned Runs"] }}{% endif %}</td>
             </tr>
             {% endfor %}
         </table>
     </div>
     {% endfor %}
-
-    <div style="margin-top: 30px; font-size: 0.9em;">
+    <div style="margin-top: 40px; font-size: 0.9em;">
         <h3>🧠 Bet Confidence Key:</h3>
         <ul>
-            <li>🔥 Must Bet Over: 0.85 – 1.00</li>
-            <li>✅ Strong Over: 0.65 – 0.84</li>
-            <li>Lean Over: 0.50 – 0.64</li>
-            <li>Lean Under: 0.35 – 0.49</li>
-            <li>❌ Strong Under: 0.20 – 0.34</li>
-            <li>🚫 Avoid Bet: 0.00 – 0.19</li>
+            <li>🔥 <strong>Must Bet Over</strong>: 0.85 – 1.00</li>
+            <li>✅ <strong>Strong Over</strong>: 0.65 – 0.84</li>
+            <li><strong>Lean Over</strong>: 0.50 – 0.64</li>
+            <li><strong>Lean Under</strong>: 0.35 – 0.49</li>
+            <li>❌ <strong>Strong Under</strong>: 0.20 – 0.34</li>
+            <li>🚫 <strong>Avoid Bet</strong>: 0.00 – 0.19</li>
+        </ul>
+    </div>
+    <div style="margin-top: 30px; font-size: 0.9em;">
+        <h3>🧠 Pitcher Prop Confidence Key:</h3>
+        <ul>
+            <li>🔥 <strong>Must Bet Over</strong>: 0.85 – 1.00</li>
+            <li>✅ <strong>Strong Over</strong>: 0.65 – 0.84</li>
+            <li><strong>Lean Over</strong>: 0.50 – 0.64</li>
+            <li><strong>Lean Under</strong>: 0.35 – 0.49</li>
+            <li>❌ <strong>Strong Under</strong>: 0.20 – 0.34</li>
+            <li>🚫 <strong>Avoid Bet</strong>: 0.00 – 0.19</li>
         </ul>
     </div>
 </body>

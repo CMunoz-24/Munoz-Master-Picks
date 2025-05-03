@@ -107,7 +107,7 @@ def get_todays_games():
 
                             if pos == "P":
                                 from pitcher_engine import get_adjusted_pitcher_props
-                                props = get_adjusted_pitcher_props(full_name, fallback_data if fallback_mode else None)
+                                props = get_adjusted_pitcher_props(full_name)
                                 pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
                                 recommendations = props.get("Recommendations", {})
 
@@ -126,7 +126,7 @@ def get_todays_games():
 
                             elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
                                 base_stats = get_player_stat_profile(full_name)
-                                adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats, fallback_data if fallback_mode else None)
+                                adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
                                 batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
 
                                 try:
@@ -169,7 +169,7 @@ def get_todays_games():
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
-    games, _ = get_todays_games()  # ✅ FIXED
+    games = get_todays_games()
     game = next((g for g in games if g["id"] == game_id), None)
 
     if not game:
