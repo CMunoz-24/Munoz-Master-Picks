@@ -93,6 +93,18 @@ def game_detail(game_id):
 
     return render_template("game_detail.html", game=game)
 
+@app.route("/login", methods=["GET", "POST"])
+def login_page():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username == USERNAME and password == PASSWORD:
+            session["logged_in"] = True
+            return redirect(url_for("home"))
+        else:
+            return render_template("login.html", error="Invalid credentials.")
+    return render_template("login.html")
+
 @app.route('/logout')
 def logout():
     session.clear()
