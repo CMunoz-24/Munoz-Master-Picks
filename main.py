@@ -24,6 +24,7 @@ def get_todays_games():
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
+    print("[DEBUG] get_todays_games() has started")
 
     try:
         # MLB schedule
@@ -129,12 +130,14 @@ def get_todays_games():
                     print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
         print(f"[DEBUG] Total games processed: {len(games)}")
+        print(f"[DEBUG] Final games list length: {len(games)}")
+        for g in games:
+            print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
         return games
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
         return []
-
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
