@@ -101,7 +101,7 @@ def logout():
 @app.route('/home')
 def home():
     if not session.get("logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     games = get_todays_games()
     return render_template("home.html", games=games)
 
