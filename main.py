@@ -38,6 +38,7 @@ def get_todays_games():
 
         for date in schedule_data.get("dates", []):
             for game in date.get("games", []):
+             try:
                 home = game["teams"]["home"]["team"]["name"]
                 away = game["teams"]["away"]["team"]["name"]
                 game_id = game["gamePk"]
@@ -97,7 +98,7 @@ def get_todays_games():
                                 "SeasonStats": season_stats
                             })
 
-                        elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                        if pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
                             base_stats = get_player_stat_profile(full_name)
                             adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
                             batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
@@ -135,6 +136,7 @@ def get_todays_games():
 
     except Exception as e:
         print(f"Error fetching data: {e}")
+        print(f"[DEBUG] Total games processed: {len(games)}")
 
     return games
 
