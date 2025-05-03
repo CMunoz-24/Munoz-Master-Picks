@@ -30,6 +30,8 @@ def get_todays_games():
     try:
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
+        print("[DEBUG] Schedule API status code:", schedule_res.status_code)
+        print("[DEBUG] Schedule API response text:", schedule_res.text[:300])  # first 300 chars only
         schedule_data = schedule_res.json()
         print("[DEBUG] Raw schedule data keys:", schedule_data.keys())
         print("[DEBUG] Raw schedule 'dates':", schedule_data.get("dates", []))
