@@ -149,7 +149,10 @@ def get_todays_games():
         print(f"[DEBUG] Final games list length: {len(games)}")
         for g in games:
             print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
-        return games
+        remaining = int(odds_res.headers.get("x-requests-remaining", 0))
+        used = int(odds_res.headers.get("x-requests-used", 0))
+        return games, {"remaining": remaining, "used": used}
+
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
@@ -197,8 +200,8 @@ def logout():
 def home():
     if not session.get("logged_in"):
         return redirect(url_for("login_page"))
-    games = get_todays_games()
-    return render_template("home.html", games=games)
+    games, quota = get_todays_games()
+    return render_template("home.html", games=games, quota=quota)
 
 from flask import redirect
 

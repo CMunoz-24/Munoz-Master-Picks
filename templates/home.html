@@ -83,5 +83,20 @@
       </div>
     {% endfor %}
   </div>
+  <!-- API Quota Footer -->
+{% if quota %}
+<div style="margin-top: 30px; padding: 15px; text-align: center;
+            background-color: {% if quota.remaining < 10 %}#ffcccc{% else %}#e6f7ff{% endif %};
+            border-top: 2px solid #ccc; font-size: 16px;">
+    <strong>Odds API Usage:</strong>
+    Remaining: {{ quota.remaining }} &nbsp; | &nbsp;
+    Used: {{ quota.used }}
+    {% if quota.remaining < 10 %}
+        <div style="color: red; font-weight: bold; margin-top: 5px;">
+            Warning: Your API quota is running low!
+        </div>
+    {% endif %}
+</div>
+{% endif %}
 </body>
 </html>
