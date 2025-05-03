@@ -96,7 +96,7 @@ def game_detail(game_id):
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for("login_page"))
 
 @app.route('/home')
 def home():
