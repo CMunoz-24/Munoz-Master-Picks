@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session, url_for
 from player_stats import get_player_stat_profile
 from matchup_engine import get_adjusted_hitter_props
 from pitcher_engine import get_adjusted_pitcher_props
+from player_stats_helper import get_player_season_stats
 import os
 import requests
 from dotenv import load_dotenv
@@ -84,19 +85,24 @@ def get_todays_games():
                             props = get_adjusted_pitcher_props(full_name)
                             pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
                             recommendations = props.get("Recommendations", {})
+                            season_stats = get_player_season_stats(full_name)
                             pitchers_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
-                                 **pitcher_stats,
-                                "Recommendations": recommendations
-                             })
+                                **pitcher_stats,
+                                "Recommendations": recommendations,
+                                "SeasonStats": season_stats
+                            })
 
                         else:
                             base_stats = get_player_stat_profile(full_name)
                             adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
                             batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
+                            season_stats = get_player_season_stats(full_name)
                             batters_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
-                                **batting_stats
+                                **batting_stats,
+                                "Recommendations": adjusted.get("Recommendations", {}),
+                                "SeasonStats": season_stats
                             })
 
                 games.append({
