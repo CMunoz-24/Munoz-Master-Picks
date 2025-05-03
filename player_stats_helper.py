@@ -2,6 +2,41 @@
 
 import requests
 
+import requests
+
+def fetch_pitcher_data_by_name(name):
+    try:
+        # Search player by name to get their ID
+        search_url = f"https://statsapi.mlb.com/api/v1/people/search?name={name}"
+        search_response = requests.get(search_url).json()
+        results = search_response.get("people", [])
+        if not results:
+            raise ValueError(f"No player found with name: {name}")
+        
+        player_id = results[0]["id"]
+
+        # Get player stats by ID
+        stats_url = f"https://statsapi.mlb.com/api/v1/people/{player_id}?hydrate=stats(group=[pitching],type=season)"
+        stats_response = requests.get(stats_url).json()
+        player = stats_response["people"][0]
+
+        era = float(player["stats"][0]["splits"][0]["stat"]["era"])
+        whip = float(player["stats"][0]["splits"][0]["stat"]["whip"])
+        handedness = player["pitchHand"]["code"]
+
+        return {
+            "era": era,
+            "whip": whip,
+            "throws": handedness
+        }
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch pitcher data for {name}: {e}")
+        return {
+            "era": 4.50,
+            "whip": 1.30,
+            "throws": "R"
+        }
+
 def get_player_season_stats(player_name):
     try:
         search_url = f"https://statsapi.mlb.com/api/v1/people/search?name={player_name}"
@@ -42,3 +77,11 @@ def get_player_season_stats(player_name):
     except Exception as e:
         print(f"Failed to get stats for {player_name}: {e}")
         return {}
+
+def get_pitcher_stats_by_name(name):
+    data = fetch_pitcher_data_by_name(name)
+    return {
+        "ERA": round(data.get("era", 4.00), 2),
+        "handedness": data.get("throws", "R")
+    }
+

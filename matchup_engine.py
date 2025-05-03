@@ -28,39 +28,48 @@ def get_recommendation(stat, value):
     else:
         return "🚫 Avoid Bet"
 
-def get_adjusted_hitter_props(hitter_name, pitcher_name, hitter_stats):
-    pitcher = get_pitcher_profile(pitcher_name)
+from player_stats_helper import get_pitcher_stats_by_name
 
-    hits = hitter_stats.get("Hits", 0.6)
-    hr = hitter_stats.get("HR", 0.2)
-    walks = hitter_stats.get("Walks", 0.1)
+def get_adjusted_hitter_props(hitter_name, opposing_pitcher_name, base_stats):
+    pitcher_stats = get_pitcher_stats_by_name(opposing_pitcher_name)
 
-    reason = []
+    # Adjust base stats based on opposing pitcher ERA and handedness
+    adjustment_factor = 1.0
 
-    if pitcher["HR_9"] > 1.0:
-        hr += 0.03
-        reason.append("Pitcher gives up a lot of home runs.")
+    # Harder pitcher → decrease stats
+    if pitcher_stats["ERA"] < 3.00:
+        adjustment_factor -= 0.05
+    elif pitcher_stats["ERA"] > 4.00:
+        adjustment_factor += 0.05
 
-    if pitcher["slider%"] > 20:
-        whiff = hitter_stats.get("Whiff%", 30)
-        if whiff > 28:
-            hits -= 0.03
-            reason.append("Pitcher's slider may challenge this hitter's swing-and-miss profile.")
+    # Bonus for batter if facing opposite-handed pitcher
+    if ("L" in base_stats.get("bats", "")) and pitcher_stats["handedness"] == "R":
+        adjustment_factor += 0.03
+    elif ("R" in base_stats.get("bats", "")) and pitcher_stats["handedness"] == "L":
+        adjustment_factor += 0.03
 
-    if pitcher["throws"] == "L":
-        reason.append("Facing a lefty—adjusts matchups based on splits (future).")
+    adjusted_props = {
+        "AVG": round(base_stats.get("AVG", 0.250) * adjustment_factor, 3),
+        "HR": round(base_stats.get("HR", 10) * adjustment_factor, 2),
+        "RBI": round(base_stats.get("RBI", 40) * adjustment_factor, 2),
+        "OPS": round(base_stats.get("OPS", 0.750) * adjustment_factor, 3),
+        "SB": round(base_stats.get("SB", 5) * adjustment_factor, 2),
+    }
+
+    recommendation = {}
+    if adjusted_props["HR"] > 15:
+        recommendation["Home Run Prop"] = "Bet HR Over"
+    if adjusted_props["AVG"] > 0.280:
+        recommendation["Hit Prop"] = "Bet Over 1.5 Total Bases"
+    if adjusted_props["SB"] > 10:
+        recommendation["Steal Prop"] = "Bet Stolen Base Over"
 
     return {
-        "Hits": round(hits, 2),
-        "HR": round(hr, 2),
-        "Walks": round(walks, 2),
-        "Recommendations": {
-            "Hits": get_recommendation("Hits", hits),
-            "HR": get_recommendation("HR", hr),
-            "Walks": get_recommendation("Walks", walks)
-        },
-        "Reason": "; ".join(reason) if reason else "Standard projection."
+        **adjusted_props,
+        "Recommendations": recommendation,
+        "Reason": f"Adjusted for pitcher {opposing_pitcher_name} (ERA {pitcher_stats['ERA']}, {pitcher_stats['handedness']}-handed)"
     }
+
 
 # Key for interpretation:
 BET_STRENGTH_KEY = {

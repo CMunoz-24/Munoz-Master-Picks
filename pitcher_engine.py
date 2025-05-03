@@ -16,28 +16,42 @@ def get_pitcher_prop_recommendation(stat, value):
     else:
         return "🚫 Avoid Bet"
 
-def get_adjusted_pitcher_props(pitcher_name, raw_stats=None):
-    # You can pass in real stats later. For now, we simulate.
-    k_rate = round(random.uniform(0.5, 0.9), 2)  # Strikeout probability
-    outs = round(random.uniform(0.5, 0.95), 2)
-    walks = round(random.uniform(0.2, 0.8), 2)
-    hits_allowed = round(random.uniform(0.2, 0.85), 2)
-    earned_runs = round(random.uniform(0.1, 0.75), 2)
+from player_stats_helper import fetch_pitcher_data_by_name
 
-    props = {
-        "Strikeouts": k_rate,
-        "Outs": outs,
-        "Walks Allowed": walks,
-        "Hits Allowed": hits_allowed,
-        "Earned Runs": earned_runs
-    }
+def get_adjusted_pitcher_props(pitcher_name):
+    data = fetch_pitcher_data_by_name(pitcher_name)
 
-    recommendations = {stat: get_pitcher_prop_recommendation(stat, value) for stat, value in props.items()}
+    era = data.get("era", 4.50)
+    whip = data.get("whip", 1.30)
+    k_rate = data.get("so9", 8.0) if "so9" in data else 8.0
+
+    recommendations = {}
+
+    if era <= 2.80:
+        recommendations["Earned Runs Prop"] = "🔥 Must Bet Under"
+    elif era <= 3.50:
+        recommendations["Earned Runs Prop"] = "✅ Strong Under"
+    elif era >= 4.50:
+        recommendations["Earned Runs Prop"] = "❌ Strong Over"
+
+    if whip <= 1.00:
+        recommendations["Hits Allowed Prop"] = "✅ Bet Under"
+    elif whip >= 1.40:
+        recommendations["Hits Allowed Prop"] = "❌ Bet Over"
+
+    if k_rate >= 10:
+        recommendations["Strikeouts Prop"] = "🔥 Bet K Over"
+    elif k_rate <= 6:
+        recommendations["Strikeouts Prop"] = "❌ Avoid K Over"
 
     return {
-        **props,
-        "Recommendations": recommendations
+        "ERA": era,
+        "WHIP": whip,
+        "K/9": k_rate,
+        "Recommendations": recommendations,
+        "Reason": f"Live-adjusted from MLB API for {pitcher_name} (ERA {era}, WHIP {whip}, K/9 {k_rate})"
     }
+
 
 # Confidence key (same as batter engine)
 PITCHER_BET_KEY = {
