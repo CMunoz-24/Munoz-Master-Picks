@@ -5,21 +5,24 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 30px;
+            background-color: #f9f9f9;
+            padding: 20px;
         }
         h1, h2 {
-            color: #333;
+            color: #222;
+        }
+        .team-section {
+            margin-bottom: 40px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
             background-color: #fff;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: center;
         }
         th {
@@ -32,40 +35,48 @@
     <h1>{{ game.teams }}</h1>
     <h2>Moneyline: {{ game.ml }} | Spread: {{ game.spread }} | Over/Under: {{ game.ou }}</h2>
 
-    <h2>Batters</h2>
-    <table>
-        <tr>
-            <th>Player</th>
-            <th>Hits</th>
-            <th>HR</th>
-            <th>Walks</th>
-        </tr>
-        {% for player in game.batters %}
-        <tr>
-            <td>{{ player.name }}</td>
-            <td>{{ player.Hits }}</td>
-            <td>{{ player.HR }}</td>
-            <td>{{ player.Walks }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% for team, players in game.batters.items() %}
+    <div class="team-section">
+        <h2>{{ team }} - Batters</h2>
+        <table>
+            <tr>
+                <th>Player</th>
+                <th>Hits</th>
+                <th>HR</th>
+                <th>Walks</th>
+            </tr>
+            {% for player in players %}
+            <tr>
+                <td>{{ player.name }}</td>
+                <td>{{ player.Hits }}</td>
+                <td>{{ player.HR }}</td>
+                <td>{{ player.Walks }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
 
-    <h2>Pitchers</h2>
-    <table>
-        <tr>
-            <th>Pitcher</th>
-            <th>ERA</th>
-            <th>K%</th>
-            <th>IP</th>
-        </tr>
-        {% for pitcher in game.pitchers %}
-        <tr>
-            <td>{{ pitcher.name }}</td>
-            <td>{{ pitcher.ERA }}</td>
-            <td>{{ pitcher.K_percent }}</td>
-            <td>{{ pitcher.IP }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% for team, pitchers in game.pitchers.items() %}
+    <div class="team-section">
+        <h2>{{ team }} - Pitchers</h2>
+        <table>
+            <tr>
+                <th>Pitcher</th>
+                <th>ERA</th>
+                <th>K%</th>
+                <th>IP</th>
+            </tr>
+            {% for pitcher in pitchers %}
+            <tr>
+                <td>{{ pitcher.name }}</td>
+                <td>{{ pitcher.ERA }}</td>
+                <td>{{ pitcher.K_percent }}</td>
+                <td>{{ pitcher.IP }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
 </body>
 </html>
