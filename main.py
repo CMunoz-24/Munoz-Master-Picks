@@ -105,14 +105,6 @@ def home():
     games = get_todays_games()
     return render_template("home.html", games=games)
 
-@app.route('/game/<int:game_id>')
-def game_detail(game_id):
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    games = get_todays_games()
-    game = next((g for g in games if g["id"] == game_id), None)
-    return render_template("game_detail.html", game=game)
-
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
