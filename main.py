@@ -113,11 +113,6 @@ def game_detail(game_id):
     games = get_todays_games()
     game = next((g for g in games if g["id"] == game_id), None)
 
-    @app.route("/game/<int:game_id>")
-    def game_detail(game_id):
-    games = get_todays_games()
-    game = next((g for g in games if g["id"] == game_id), None)
-
     if not game:
         return "Game not found", 404
 
