@@ -174,12 +174,7 @@ def get_todays_games():
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
         def get_todays_games():
-    from datetime import datetime
-    today = datetime.now().strftime("%Y-%m-%d")
-    print(f"[DEBUG] Date being fetched: {today}")
-    games = []
-    print("[DEBUG] get_todays_games() has started")
-
+            
     try:
         # Your MLB + Odds + Fallback logic here
         # ...
