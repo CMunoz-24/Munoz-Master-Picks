@@ -36,106 +36,97 @@ def get_todays_games():
         odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
         odds_data = requests.get(odds_url).json()
 
-        for date in schedule_data.get("dates", []):
-            
-for game in date.get("games", []):
-    try:
-        home = game["teams"]["home"]["team"]["name"]
-        away = game["teams"]["away"]["team"]["name"]
-        game_id = game["gamePk"]
-        matchup = f"{away} vs {home}"
+for date in schedule_data.get("dates", []):
+    for game in date.get("games", []):
+        try:
+            home = game["teams"]["home"]["team"]["name"]
+            away = game["teams"]["away"]["team"]["name"]
+            game_id = game["gamePk"]
+            matchup = f"{away} vs {home}"
 
-        ml = spread = ou = 0.5
+            ml = spread = ou = 0.5
 
-        for odds_game in odds_data:
-            if (home.lower() in odds_game["home_team"].lower() and
-                away.lower() in odds_game["away_team"].lower()):
-                try:
-                    markets = {m["key"]: m for m in odds_game["bookmakers"][0]["markets"]}
-                    if "h2h" in markets:
-                        ml = 0.5 + 0.1 * int("1" in markets["h2h"]["outcomes"][0]["name"])
-                    if "spreads" in markets:
-                        spread = 0.6
-                    if "totals" in markets:
-                        ou = 0.7
-                except Exception:
-                    pass
-                break
-
-
-        # Get player data
-        boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
-        player_res = requests.get(boxscore_url)
-        player_data = player_res.json()
-
-        batters_by_team = {}
-        pitchers_by_team = {}
-
-        for team_key in ["home", "away"]:
-            team_info = player_data["teams"][team_key]
-            team_name = team_info["team"]["name"]
-
-            # Opposing pitcher
-            opposing_key = "away" if team_key == "home" else "home"
-            opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
-
-            for pid, pinfo in team_info["players"].items():
-                full_name = pinfo["person"]["fullName"]
-                pos = pinfo.get("position", {}).get("abbreviation", "")
-
-                if pos == "P":
-                    from pitcher_engine import get_adjusted_pitcher_props
-                    props = get_adjusted_pitcher_props(full_name)
-                    pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
-                    recommendations = props.get("Recommendations", {})
-
+            for odds_game in odds_data:
+                if (home.lower() in odds_game["home_team"].lower() and
+                    away.lower() in odds_game["away_team"].lower()):
                     try:
-                        season_stats = get_player_season_stats(full_name)
-                    except Exception as e:
-                        print(f"Could not fetch stats for pitcher {full_name}: {e}")
-                        season_stats = {}
+                        markets = {m["key"]: m for m in odds_game["bookmakers"][0]["markets"]}
+                        if "h2h" in markets:
+                            ml = 0.5 + 0.1 * int("1" in markets["h2h"]["outcomes"][0]["name"])
+                        if "spreads" in markets:
+                            spread = 0.6
+                        if "totals" in markets:
+                            ou = 0.7
+                    except Exception:
+                        pass
+                    break
 
-                    pitchers_by_team.setdefault(team_name, []).append({
-                        "name": full_name,
-                        **pitcher_stats,
-                        "Recommendations": recommendations,
-                        "SeasonStats": season_stats
-                    })
+            boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
+            player_res = requests.get(boxscore_url)
+            player_data = player_res.json()
 
-                elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
-                    base_stats = get_player_stat_profile(full_name)
-                    adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
-                    batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
+            batters_by_team = {}
+            pitchers_by_team = {}
 
-                    try:
-                        season_stats = get_player_season_stats(full_name)
-                    except Exception as e:
-                        print(f"Could not fetch stats for batter {full_name}: {e}")
-                        season_stats = {}
+            for team_key in ["home", "away"]:
+                team_info = player_data["teams"][team_key]
+                team_name = team_info["team"]["name"]
+                opposing_key = "away" if team_key == "home" else "home"
+                opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
 
-                    batters_by_team.setdefault(team_name, []).append({
-                        "name": full_name,
-                        **batting_stats,
-                        "Recommendations": adjusted.get("Recommendations", {}),
-                        "SeasonStats": season_stats
-                    })
+                for pid, pinfo in team_info["players"].items():
+                    full_name = pinfo["person"]["fullName"]
+                    pos = pinfo.get("position", {}).get("abbreviation", "")
 
-        games.append({
-            "id": game_id,
-            "teams": matchup,
-            "ml": ml,
-            "spread": spread,
-            "ou": ou,
-            "batters": batters_by_team,
-            "pitchers": pitchers_by_team
-        })
+                    if pos == "P":
+                        from pitcher_engine import get_adjusted_pitcher_props
+                        props = get_adjusted_pitcher_props(full_name)
+                        pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
+                        recommendations = props.get("Recommendations", {})
+                        try:
+                            season_stats = get_player_season_stats(full_name)
+                        except Exception as e:
+                            print(f"Could not fetch stats for pitcher {full_name}: {e}")
+                            season_stats = {}
+                        pitchers_by_team.setdefault(team_name, []).append({
+                            "name": full_name,
+                            **pitcher_stats,
+                            "Recommendations": recommendations,
+                            "SeasonStats": season_stats
+                        })
 
-    except Exception as e:
-        print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
+                    elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                        base_stats = get_player_stat_profile(full_name)
+                        adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
+                        batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
+                        try:
+                            season_stats = get_player_season_stats(full_name)
+                        except Exception as e:
+                            print(f"Could not fetch stats for batter {full_name}: {e}")
+                            season_stats = {}
+                        batters_by_team.setdefault(team_name, []).append({
+                            "name": full_name,
+                            **batting_stats,
+                            "Recommendations": adjusted.get("Recommendations", {}),
+                            "SeasonStats": season_stats
+                        })
 
-        print(f"[DEBUG] Total games processed: {len(games)}")
+            games.append({
+                "id": game_id,
+                "teams": matchup,
+                "ml": ml,
+                "spread": spread,
+                "ou": ou,
+                "batters": batters_by_team,
+                "pitchers": pitchers_by_team
+            })
 
-    return games
+        except Exception as e:
+            print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
+
+print(f"[DEBUG] Total games processed: {len(games)}")
+return games
+
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
