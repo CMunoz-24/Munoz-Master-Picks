@@ -113,18 +113,23 @@ def game_detail(game_id):
     games = get_todays_games()
     game = next((g for g in games if g["id"] == game_id), None)
 
+    @app.route("/game/<int:game_id>")
+def game_detail(game_id):
+    games = get_todays_games()
+    game = next((g for g in games if g["id"] == game_id), None)
+
     if not game:
         return "Game not found", 404
 
-    # Build fake props for each player (next upgrade: statcast-powered props)
-    for p in game["players"]:
-        # These values are already simulated from get_todays_games()
-        # You could enhance this further later with historical splits
-        p["Hits"] = p.get("Hits", 0.6)
-        p["HR"] = p.get("HR", 0.25)
-        p["Walks"] = p.get("Walks", 0.1)
+    return render_template("game_detail.html", game={
+        "teams": game.get("teams", "N/A"),
+        "ml": game.get("ml", "N/A"),
+        "spread": game.get("spread", "N/A"),
+        "ou": game.get("ou", "N/A"),
+        "batters": game.get("batters", []),
+        "pitchers": game.get("pitchers", [])
+    })
 
-    return render_template("game_detail.html", game=game)
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
