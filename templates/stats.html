@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fallback Player Stats</title>
+</head>
+<body>
+    <h1>Fallback Stats (No Live Odds)</h1>
+
+    <h2>📊 MySportsFeeds — Basic Batting Stats</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th><th>AVG</th><th>HR</th><th>OBP</th><th>RBI</th><th>Games</th>
+        </tr>
+        {% for row in msf_stats %}
+        <tr>
+            <td>{{ row.first_name }} {{ row.last_name }}</td>
+            <td>{{ row.avg }}</td>
+            <td>{{ row.hr }}</td>
+            <td>{{ row.obp }}</td>
+            <td>{{ row.rbi }}</td>
+            <td>{{ row.games_played }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>📈 FanGraphs — Advanced Metrics (Top 20)</h2>
+    <table border="1">
+        <tr>
+            {% for key in fg_stats[0].keys() %}
+            <th>{{ key }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in fg_stats %}
+        <tr>
+            {% for val in row.values() %}
+            <td>{{ val }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="/home">⬅ Back to Home</a></p>
+</body>
+</html>

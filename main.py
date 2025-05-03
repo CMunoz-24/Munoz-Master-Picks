@@ -7,6 +7,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from datetime import datetime
+from utils.data_loader import get_live_or_fallback_data
 
 load_dotenv()
 app = Flask(__name__)
@@ -34,20 +35,29 @@ def get_todays_games():
         print("[DEBUG] Raw schedule data keys:", schedule_data.keys())
         print("[DEBUG] Raw schedule 'dates':", schedule_data.get("dates", []))
 
-        # Odds API
-        odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
-        odds_res = requests.get(odds_url)
-        odds_data = odds_res.json()
+        # ✅ CORRECT indentation here
+        fallback_mode = False
+        fallback_data = {}
 
-        # Log quota headers if they exist
-        remaining = odds_res.headers.get("x-requests-remaining")
-        used = odds_res.headers.get("x-requests-used")
-        print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
+        try:
+            odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
+            odds_res = requests.get(odds_url)
+            odds_data = odds_res.json()
 
-        print("[DEBUG] Odds data type:", type(odds_data))
-        if not isinstance(odds_data, list):
-            print("[ERROR] Odds API did not return a list. Full response:", odds_data)
-            odds_data = []  # Prevent further crashing
+            remaining = odds_res.headers.get("x-requests-remaining")
+            used = odds_res.headers.get("x-requests-used")
+
+            print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
+            print("[DEBUG] Odds data type:", type(odds_data))
+
+            if not isinstance(odds_data, list):
+                raise ValueError("Odds API failed — switching to fallback.")
+
+        except Exception as e:
+            print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
+            fallback_mode = True
+            fallback_data = get_live_or_fallback_data()
+            odds_data = []  # Odds not available
 
         for date in schedule_data.get("dates", []):
             for game in date.get("games", []):
@@ -208,6 +218,21 @@ from flask import redirect
 @app.route("/")
 def index():
     return redirect("/home")
+
+@app.route('/stats')
+def stats_page():
+    if not session.get("logged_in"):
+        return redirect(url_for("login_page"))
+
+    fallback_data = get_live_or_fallback_data()
+    msf_df = fallback_data.get("mysportsfeeds")
+    fg_df = fallback_data.get("fangraphs")
+
+    # Show just a few top rows
+    msf_table = msf_df.head(20).to_dict(orient="records") if not msf_df.empty else []
+    fg_table = fg_df.head(20).to_dict(orient="records") if not fg_df.empty else []
+
+    return render_template("stats.html", msf_stats=msf_table, fg_stats=fg_table)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
