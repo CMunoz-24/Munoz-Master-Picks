@@ -169,7 +169,7 @@ def get_todays_games():
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
-    games = get_todays_games()
+    games, _ = get_todays_games()  # ✅ FIXED
     game = next((g for g in games if g["id"] == game_id), None)
 
     if not game:
