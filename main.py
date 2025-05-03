@@ -57,7 +57,7 @@ def get_todays_games():
                             pass
                         break
 
-                # Pull players using boxscore data (more complete)
+                                # Pull players using boxscore data (more complete)
                 boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
                 player_res = requests.get(boxscore_url)
                 player_data = player_res.json()
@@ -65,13 +65,14 @@ def get_todays_games():
                 players = []
                 for team_key in ["home", "away"]:
                     team_info = player_data["teams"][team_key]
-                   for pid, pinfo in team_info["players"].items():
-                    full_name = pinfo["person"]["fullName"]
-                    stats = get_player_stat_profile(full_name)
-                    players.append({
-                        "name": full_name,
-                        **stats
-                    })
+                    for pid, pinfo in team_info["players"].items():
+                        full_name = pinfo["person"]["fullName"]
+                        stats = get_player_stat_profile(full_name)
+                        players.append({
+                            "name": full_name,
+                            **stats
+                        })
+
 
                 games.append({
                     "id": game_id,
