@@ -48,11 +48,14 @@
             {% for player in players %}
             <tr>
                 <td>{{ player.name }}</td>
-                <td>{{ player.Hits }}</td>
-                <td>{{ player.HR }}</td>
-                <td>{{ player.Walks }}</td>
+                <td>{{ player.Hits }} → {{ player.Recommendations.Hits }}</td>
+                <td>{{ player.HR }} → {{ player.Recommendations.HR }}</td>
+                <td>{{ player.Walks }} → {{ player.Recommendations.Walks }}</td>
             </tr>
             {% endfor %}
+        </table>
+    </div>
+    {% endfor %}    
         </table>
     </div>
     {% endfor %}
@@ -80,3 +83,14 @@
     {% endfor %}
 </body>
 </html>
+<div style="margin-top: 40px; font-size: 0.9em;">
+    <h3>🧠 Bet Confidence Key:</h3>
+    <ul>
+        <li>🔥 <strong>Must Bet Over</strong>: 0.85 – 1.00</li>
+        <li>✅ <strong>Strong Over</strong>: 0.65 – 0.84</li>
+        <li><strong>Lean Over</strong>: 0.50 – 0.64</li>
+        <li><strong>Lean Under</strong>: 0.35 – 0.49</li>
+        <li>❌ <strong>Strong Under</strong>: 0.20 – 0.34</li>
+        <li>🚫 <strong>Avoid Bet</strong>: 0.00 – 0.19</li>
+    </ul>
+</div>
