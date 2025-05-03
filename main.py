@@ -167,21 +167,10 @@ def get_todays_games():
         print(f"[DEBUG] Final games list length: {len(games)}")
         for g in games:
             print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
+
         remaining = int(odds_res.headers.get("x-requests-remaining", 0)) if not fallback_mode else 0
         used = int(odds_res.headers.get("x-requests-used", 0)) if not fallback_mode else 0
         return games, {"remaining": remaining, "used": used}
-
-    except Exception as e:
-        print(f"[ERROR] Failed to fetch schedule/odds: {e}")
-        def get_todays_games():
-            
-    try:
-        # Your MLB + Odds + Fallback logic here
-        # ...
-        # Process games and append to the games list
-        # ...
-
-        return games or [], {"remaining": 0, "used": 0}
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
