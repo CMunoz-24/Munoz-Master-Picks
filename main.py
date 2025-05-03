@@ -26,7 +26,7 @@ def get_todays_games():
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
     print("[DEBUG] get_todays_games() has started")
-
+    
     try:
         # MLB schedule
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
@@ -171,6 +171,23 @@ def get_todays_games():
         remaining = int(odds_res.headers.get("x-requests-remaining", 0)) if not fallback_mode else 0
         used = int(odds_res.headers.get("x-requests-used", 0)) if not fallback_mode else 0
         return games, {"remaining": remaining, "used": used}
+
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch schedule/odds: {e}")
+        def get_todays_games():
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
+    print(f"[DEBUG] Date being fetched: {today}")
+    games = []
+    print("[DEBUG] get_todays_games() has started")
+
+    try:
+        # Your MLB + Odds + Fallback logic here
+        # ...
+        # Process games and append to the games list
+        # ...
+
+        return games or [], {"remaining": 0, "used": 0}
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
