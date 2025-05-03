@@ -105,6 +105,13 @@ def home():
     games = get_todays_games()
     return render_template("home.html", games=games)
 
+from flask import redirect
+
+@app.route("/")
+def index():
+    return redirect("/home")
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
