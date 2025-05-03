@@ -26,9 +26,8 @@ def get_todays_games():
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
     print("[DEBUG] get_todays_games() has started")
-    
+
     try:
-        # MLB schedule
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         schedule_data = schedule_res.json()
