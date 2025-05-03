@@ -159,14 +159,13 @@ def get_todays_games():
         print(f"[DEBUG] Final games list length: {len(games)}")
         for g in games:
             print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
-        remaining = int(odds_res.headers.get("x-requests-remaining", 0))
-        used = int(odds_res.headers.get("x-requests-used", 0))
+        remaining = int(odds_res.headers.get("x-requests-remaining", 0)) if not fallback_mode else 0
+        used = int(odds_res.headers.get("x-requests-used", 0)) if not fallback_mode else 0
         return games, {"remaining": remaining, "used": used}
-
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
-        return []
+        return [], {"remaining": 0, "used": 0}
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
