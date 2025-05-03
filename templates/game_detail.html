@@ -1,67 +1,86 @@
-
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Game Details | Muñoz Master Picks</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #ffffff;
-      padding: 20px;
-      text-align: center;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    h2 {
-      color: #0050EF;
-    }
-    .props, .recommendation {
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin: 20px 0;
-      border-radius: 8px;
-      text-align: left;
-    }
-    .back-link {
-      margin-top: 20px;
-    }
-    a {
-      color: #0050EF;
-      text-decoration: none;
-    }
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.5">
+  <style type="text/css">
+    span.s1 {font-kerning: none}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>{{ game.teams }}</h2>
-
-    <div class="recommendation">
-      <h3>🧠 Suggested Bet</h3>
-      <p><strong>Moneyline:</strong> {{ (game.ml * 100) | round(1) }}%</p>
-      <p><strong>Spread:</strong> {{ (game.spread * 100) | round(1) }}%</p>
-      <p><strong>Over/Under:</strong> {{ (game.ou * 100) | round(1) }}%</p>
-    </div>
-
-    <div class="props">
-      <h3>📊 Player Prop Probabilities</h3>
-      <ul>
-        {% for p in game.players %}
-          <li>
-            <strong>{{ p.name }}</strong> — 
-            Hits: {{ (p.Hits * 100) | round(1) }}%, 
-            HR: {{ (p.HR * 100) | round(1) }}%, 
-            Walks: {{ (p.Walks * 100) | round(1) }}%
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
-
-    <div class="back-link">
-      <a href="/home">← Back to Home</a>
-    </div>
-  </div>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;!DOCTYPE html&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;html&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;head&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;title&gt;{{ game.teams }}&lt;/title&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;style&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>body {</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>font-family: Arial, sans-serif;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #f5f5f5;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 30px;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>h1, h2 {</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>color: #333;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>table {</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>width: 100%;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>border-collapse: collapse;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>margin-top: 20px;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #fff;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>th, td {</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>border: 1px solid #ddd;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>padding: 10px;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>text-align: center;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>th {</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>background-color: #0054a6;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>color: white;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/style&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;/head&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;body&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;h1&gt;{{ game.teams }}&lt;/h1&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;h2&gt;Moneyline: {{ game.ml }} | Spread: {{ game.spread }} | Over/Under: {{ game.ou }}&lt;/h2&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb; min-height: 22.0px"><span class="s1"><b></b></span><br></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;h2&gt;Batters&lt;/h2&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;table&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;Player&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;Hits&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;HR&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;Walks&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>{% for player in game.batters %}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ player.name }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ player.Hits }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ player.HR }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ player.Walks }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>{% endfor %}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/table&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb; min-height: 22.0px"><span class="s1"><b></b></span><br></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;h2&gt;Pitchers&lt;/h2&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;table&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;Pitcher&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;ERA&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;K%&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;th&gt;IP&lt;/th&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>{% for pitcher in game.pitchers %}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ pitcher.name }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ pitcher.ERA }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ pitcher.K_percent }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">            </span>&lt;td&gt;{{ pitcher.IP }}&lt;/td&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>&lt;/tr&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">        </span>{% endfor %}</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b><span class="Apple-converted-space">    </span>&lt;/table&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;/body&gt;</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; text-align: center; font: 18.0px Helvetica; color: #0133eb; -webkit-text-stroke: #0133eb"><span class="s1"><b>&lt;/html&gt;</b></span></h2>
 </body>
 </html>
