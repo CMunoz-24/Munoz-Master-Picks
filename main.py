@@ -36,7 +36,18 @@ def get_todays_games():
 
         # Odds API
         odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
-        odds_data = requests.get(odds_url).json()
+        odds_res = requests.get(odds_url)
+        odds_data = odds_res.json()
+
+        # Log quota headers if they exist
+        remaining = odds_res.headers.get("x-requests-remaining")
+        used = odds_res.headers.get("x-requests-used")
+        print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
+
+        print("[DEBUG] Odds data type:", type(odds_data))
+        if not isinstance(odds_data, list):
+            print("[ERROR] Odds API did not return a list. Full response:", odds_data)
+            odds_data = []  # Prevent further crashing
 
         for date in schedule_data.get("dates", []):
             for game in date.get("games", []):
