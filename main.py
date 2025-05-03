@@ -85,6 +85,20 @@ def get_todays_games():
                             props = get_adjusted_pitcher_props(full_name)
                             pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
                             recommendations = props.get("Recommendations", {})
+
+                            try:
+                                season_stats = get_player_season_stats(full_name)
+                            except Exception as e:
+                                print(f"Could not fetch stats for pitcher {full_name}: {e}")
+                                season_stats = {}
+
+                            pitchers_by_team.setdefault(team_name, []).append({
+                                "name": full_name,
+                                **pitcher_stats,
+                                "Recommendations": recommendations,
+                                "SeasonStats": season_stats
+                            })
+
                             season_stats = get_player_season_stats(full_name)
                             pitchers_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
@@ -97,6 +111,20 @@ def get_todays_games():
                             base_stats = get_player_stat_profile(full_name)
                             adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
                             batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
+
+                        try:
+                            season_stats = get_player_season_stats(full_name)
+                        except Exception as e:
+                            print(f"Could not fetch stats for batter {full_name}: {e}")
+                            season_stats = {}
+
+                        batters_by_team.setdefault(team_name, []).append({
+                            "name": full_name,
+                            **batting_stats,
+                            "Recommendations": adjusted.get("Recommendations", {}),
+                            "SeasonStats": season_stats
+                        })
+
                             season_stats = get_player_season_stats(full_name)
                             batters_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
