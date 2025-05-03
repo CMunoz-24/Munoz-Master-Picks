@@ -218,7 +218,10 @@ def logout():
 def home():
     if not session.get("logged_in"):
         return redirect(url_for("login_page"))
+    
     games, quota = get_todays_games()
+    print(f"[DEBUG] Games fetched on /home: {games}")
+    
     return render_template("home.html", games=games, quota=quota)
 
 from flask import redirect
