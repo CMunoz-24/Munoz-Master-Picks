@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, session, url_for
 from player_stats import get_player_stat_profile
 from matchup_engine import get_adjusted_hitter_props
@@ -25,8 +24,6 @@ def get_todays_games():
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
-    print(f"[DEBUG] Total games processed: {len(games)}")
-    return games
 
     try:
         # MLB schedule
