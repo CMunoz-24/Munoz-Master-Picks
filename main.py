@@ -23,8 +23,10 @@ MLB_API_URL = "https://statsapi.mlb.com/api/v1/schedule"
 def get_todays_games():
     from datetime import datetime
     today = datetime.now().strftime("%Y-%m-%d")
-    games = []
     print(f"[DEBUG] Date being fetched: {today}")
+    games = []
+    print(f"[DEBUG] Total games processed: {len(games)}")
+    return games
 
     try:
         # MLB schedule
