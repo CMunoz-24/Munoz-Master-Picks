@@ -37,17 +37,16 @@ def get_todays_games():
         odds_data = requests.get(odds_url).json()
 
         for date in schedule_data.get("dates", []):
-        for game in date.get("games", []):
+            
+for game in date.get("games", []):
     try:
         home = game["teams"]["home"]["team"]["name"]
         away = game["teams"]["away"]["team"]["name"]
         game_id = game["gamePk"]
         matchup = f"{away} vs {home}"
 
-        # Initialize default odds
         ml = spread = ou = 0.5
 
-        # Odds matching
         for odds_game in odds_data:
             if (home.lower() in odds_game["home_team"].lower() and
                 away.lower() in odds_game["away_team"].lower()):
@@ -62,6 +61,7 @@ def get_todays_games():
                 except Exception:
                     pass
                 break
+
 
         # Get player data
         boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
