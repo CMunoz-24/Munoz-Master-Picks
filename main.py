@@ -78,7 +78,9 @@ def get_todays_games():
                         opposing_key = "away" if team_key == "home" else "home"
                         opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
 
-                        for pid, pinfo in team_info["players"].items():
+                        print(f"[DEBUG] team_info['players'] type: {type(team_info['players'])}")
+
+                        for pinfo in team_info["players"].values():
                             full_name = pinfo["person"]["fullName"]
                             pos = pinfo.get("position", {}).get("abbreviation", "")
 
