@@ -36,30 +36,26 @@
     <h2>Moneyline: {{ game.ml }} | Spread: {{ game.spread }} | Over/Under: {{ game.ou }}</h2>
 
     {% for team, players in game.batters.items() %}
-    <div class="team-section">
-        <h2>{{ team }} - Batters</h2>
-        <table>
-            <tr>
-                <th>Player</th>
-                <th>Hits</th>
-                <th>HR</th>
-                <th>Walks</th>
-            </tr>
-            {% for player in players %}
-            <tr>
-                <td>{{ player.name }}</td>
-                <td>{{ player.Hits }} → {{ player.Recommendations.Hits }}</td>
-                <td>{{ player.HR }} → {{ player.Recommendations.HR }}</td>
-                <td>{{ player.Walks }} → {{ player.Recommendations.Walks }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    {% endfor %}    
-        </table>
-    </div>
-    {% endfor %}
-
+<div class="team-section">
+    <h2>{{ team }} - Batters</h2>
+    <table>
+        <tr>
+            <th>Player</th>
+            <th>Hits</th>
+            <th>HR</th>
+            <th>Walks</th>
+        </tr>
+        {% for player in players %}
+        <tr>
+            <td>{{ player.name }}</td>
+            <td>{{ player.Hits }}{% if player.Recommendations %} → {{ player.Recommendations.Hits }}{% endif %}</td>
+            <td>{{ player.HR }}{% if player.Recommendations %} → {{ player.Recommendations.HR }}{% endif %}</td>
+            <td>{{ player.Walks }}{% if player.Recommendations %} → {{ player.Recommendations.Walks }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endfor %}
     {% for team, pitchers in game.pitchers.items() %}
     <div class="team-section">
         <h2>{{ team }} - Pitchers</h2>
