@@ -62,16 +62,34 @@ def get_todays_games():
                 player_res = requests.get(boxscore_url)
                 player_data = player_res.json()
 
-                players = []
+                batters = []
+                pitchers = []
                 for team_key in ["home", "away"]:
                     team_info = player_data["teams"][team_key]
                     for pid, pinfo in team_info["players"].items():
                         full_name = pinfo["person"]["fullName"]
-                        stats = get_player_stat_profile(full_name)
-                        players.append({
-                            "name": full_name,
-                            **stats
-                        })
+                        pos = pinfo.get("position", {}).get("abbreviation", "")
+
+                        if pos == "P":
+                            # Pitcher logic
+                            pitching_stats = {
+                                "ERA": round(random.uniform(2.50, 4.50), 2),
+                                "K_percent": round(random.uniform(18.0, 32.0), 1),
+                                "IP": round(random.uniform(4.0, 7.0), 1)
+                            }
+                            pitchers.append({
+                                "name": full_name,
+                                **pitching_stats
+                            })
+                        else:
+                            # Batter logic
+                            batting_stats = get_player_stat_profile(full_name)
+                            batters.append({
+                                "name": full_name,
+                                **batting_stats
+                            })
+
+
 
 
                 games.append({
@@ -80,8 +98,10 @@ def get_todays_games():
                     "ml": ml,
                     "spread": spread,
                     "ou": ou,
-                    "players": players
+                    "batters": batters,
+                    "pitchers": pitchers
                 })
+
 
     except Exception as e:
         print(f"Error fetching data: {e}")
