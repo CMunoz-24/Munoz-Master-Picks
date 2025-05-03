@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from player_stats import get_player_stat_profile
 from matchup_engine import get_adjusted_hitter_props
+from pitcher_engine import get_adjusted_pitcher_props
 import os
 import requests
 from dotenv import load_dotenv
@@ -77,16 +78,18 @@ def get_todays_games():
                         full_name = pinfo["person"]["fullName"]
                         pos = pinfo.get("position", {}).get("abbreviation", "")
 
+                        from pitcher_engine import get_adjusted_pitcher_props  # Make sure this import is at the top
+                        # Inside the player loop:
                         if pos == "P":
-                            pitching_stats = {
-                                "ERA": round(random.uniform(2.50, 4.50), 2),
-                                "K_percent": round(random.uniform(18.0, 32.0), 1),
-                                "IP": round(random.uniform(4.0, 7.0), 1)
-                            }
+                            props = get_adjusted_pitcher_props(full_name)
+                            pitcher_stats = {k: v for k, v in props.items() if k != "Recommendations"}
+                            recommendations = props.get("Recommendations", {})
                             pitchers_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
-                                **pitching_stats
-                            })
+                                 **pitcher_stats,
+                                "Recommendations": recommendations
+                             })
+
                         else:
                             base_stats = get_player_stat_profile(full_name)
                             adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
