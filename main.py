@@ -31,6 +31,8 @@ def get_todays_games():
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         schedule_data = schedule_res.json()
+        print("[DEBUG] Raw schedule data keys:", schedule_data.keys())
+        print("[DEBUG] Raw schedule 'dates':", schedule_data.get("dates", []))
 
         # Odds API
         odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
@@ -43,6 +45,7 @@ def get_todays_games():
                     away = game["teams"]["away"]["team"]["name"]
                     game_id = game["gamePk"]
                     matchup = f"{away} vs {home}"
+                    print(f"[DEBUG] Processing game: {away} vs {home} | ID: {game_id}")
 
                     ml = spread = ou = 0.5  # Default values
 
