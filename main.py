@@ -1,5 +1,6 @@
 
 from flask import Flask, render_template, request, redirect, session, url_for
+from player_stats import get_player_stat_profile
 import os
 import requests
 from dotenv import load_dotenv
@@ -65,17 +66,12 @@ def get_todays_games():
                 for team_key in ["home", "away"]:
                     team_info = player_data["teams"][team_key]
                     for pid, pinfo in team_info["players"].items():
-                        full_name = pinfo["person"]["fullName"]
-                        pos = pinfo.get("position", {}).get("abbreviation", "NA")
-                        stats = {
-                            "Hits": round(random.uniform(0.5, 0.8), 2),
-                            "HR": round(random.uniform(0.1, 0.4), 2),
-                            "Walks": round(random.uniform(0.05, 0.2), 2)
-                        }
-                        players.append({
-                            "name": full_name,
-                            **stats
-                        })
+    full_name = pinfo["person"]["fullName"]
+    stats = get_player_stat_profile(full_name)
+    players.append({
+        "name": full_name,
+        **stats
+    })
 
                 games.append({
                     "id": game_id,
