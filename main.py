@@ -57,7 +57,7 @@ def get_todays_games():
                             pass
                         break
 
-                                # Pull players using boxscore data (more complete)
+                 # Pull players using boxscore data (more complete)
                 boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
                 player_res = requests.get(boxscore_url)
                 player_data = player_res.json()
