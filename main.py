@@ -22,6 +22,8 @@ MLB_API_URL = "https://statsapi.mlb.com/api/v1/schedule"
 
 def get_todays_games():
     from datetime import datetime
+    import random
+
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
@@ -31,12 +33,10 @@ def get_todays_games():
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         print("[DEBUG] Schedule API status code:", schedule_res.status_code)
-        print("[DEBUG] Schedule API response text:", schedule_res.text[:300])  # first 300 chars only
+        print("[DEBUG] Schedule API response text:", schedule_res.text[:300])
         schedule_data = schedule_res.json()
         print("[DEBUG] Raw schedule data keys:", schedule_data.keys())
-        print("[DEBUG] Raw schedule 'dates':", schedule_data.get("dates", []))
 
-        # ✅ CORRECT indentation here
         fallback_mode = False
         fallback_data = {}
 
@@ -53,23 +53,27 @@ def get_todays_games():
 
             if not isinstance(odds_data, list):
                 raise ValueError("Odds API failed — switching to fallback.")
-
         except Exception as e:
             print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
             fallback_mode = True
             fallback_data = get_live_or_fallback_data()
-            odds_data = []  # Odds not available
+            odds_data = []
 
         for date in schedule_data.get("dates", []):
-            for game in date.get("games", []):
+            print(f"[DEBUG] Processing date: {date.get('date')}")
+            games_list = date.get("games", [])
+            print(f"[DEBUG] Games found: {len(games_list)}")
+
+            for game in games_list:
                 try:
+                    print(f"[DEBUG] Raw game object: {game}")
                     home = game["teams"]["home"]["team"]["name"]
                     away = game["teams"]["away"]["team"]["name"]
                     game_id = game["gamePk"]
                     matchup = f"{away} vs {home}"
-                    print(f"[DEBUG] Processing game: {away} vs {home} | ID: {game_id}")
+                    print(f"[DEBUG] Processing game: {matchup} | ID: {game_id}")
 
-                    ml = spread = ou = 0.5  # Default values
+                    ml = spread = ou = 0.5
 
                     for odds_game in odds_data:
                         if (home.lower() in odds_game["home_team"].lower() and
@@ -86,7 +90,6 @@ def get_todays_games():
                                 pass
                             break
 
-                    # Get boxscore data
                     boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
                     player_res = requests.get(boxscore_url)
                     player_data = player_res.json()
@@ -166,7 +169,6 @@ def get_todays_games():
                     print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
         print(f"[DEBUG] Total games processed: {len(games)}")
-        print(f"[DEBUG] Final games list length: {len(games)}")
         for g in games:
             print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
 
