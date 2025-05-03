@@ -144,6 +144,10 @@ def game_detail(game_id):
     if not game:
         return "Game not found", 404
 
+    print(f"[DEBUG] Loaded game object: {game}")
+    print(f"[DEBUG] Batters: {game.get('batters')}")
+    print(f"[DEBUG] Pitchers: {game.get('pitchers')}")
+
     return render_template("game_detail.html", game={
         "teams": game.get("teams", "N/A"),
         "ml": game.get("ml", "N/A"),
@@ -152,7 +156,6 @@ def game_detail(game_id):
         "batters": game.get("batters", []),
         "pitchers": game.get("pitchers", [])
     })
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
