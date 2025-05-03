@@ -1,34 +1,30 @@
 
 import os
-from fallbacks.mysportsfeeds import get_mysportsfeeds_stats
-from fallbacks.fangraphs_scraper import fetch_fangraphs_csv
-from fallbacks.chadwick_mapper import load_chadwick_register
+import pandas as pd
+from fallbacks.fangraphs import get_fangraphs_stats
+from fallbacks.chadwick import load_chadwick_player_mapping
+
+def is_primary_data_available():
+    # Later you can make this check dynamic (e.g., test API responses)
+    return os.getenv("ODDS_API_WORKING", "false").lower() == "true"
 
 def get_combined_fallback_data():
-    print("[INFO] Fetching MySportsFeeds data...")
-    msf_df = get_mysportsfeeds_stats()
+    print("[WARNING] Primary data unavailable. Using fallback sources.")
 
-    print("[INFO] Fetching FanGraphs CSV...")
-    fg_df = fetch_fangraphs_csv()
+    print("[INFO] Fetching FanGraphs data...")
+    fg_df = get_fangraphs_stats()
 
-    print("[INFO] Loading Chadwick Register...")
-    chadwick_df = load_chadwick_register()
+    print("[INFO] Loading Chadwick player registry...")
+    chadwick_df = load_chadwick_player_mapping()
 
     return {
-        "mysportsfeeds": msf_df,
         "fangraphs": fg_df,
         "chadwick": chadwick_df
     }
 
-def is_primary_data_available():
-    # Placeholder logic: eventually check live API response status
-    return os.getenv("ODDS_API_WORKING", "false").lower() == "true"
-
 def get_live_or_fallback_data():
     if is_primary_data_available():
         print("[INFO] Using primary MLB Stats + Odds API data.")
-        # Placeholder: integrate primary pipeline
         return {"primary": "Data from Odds + MLB Stats API"}
     else:
-        print("[WARNING] Primary data unavailable. Using fallback sources.")
         return get_combined_fallback_data()
