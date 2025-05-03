@@ -37,7 +37,7 @@ def get_todays_games():
         odds_data = requests.get(odds_url).json()
 
         for date in schedule_data.get("dates", []):
-            for game in date.get("games", []):
+        for game in date.get("games", []):
     try:
         home = game["teams"]["home"]["team"]["name"]
         away = game["teams"]["away"]["team"]["name"]
