@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, request, redirect, session, url_for
 from player_stats import get_player_stat_profile
+from matchup_engine import get_adjusted_hitter_props
 import os
 import requests
 from dotenv import load_dotenv
@@ -67,7 +68,11 @@ def get_todays_games():
                 for team_key in ["home", "away"]:
                     team_info = player_data["teams"][team_key]
                     team_name = team_info["team"]["name"]
-    
+
+                    # 🔁 Get opposing team's probable pitcher
+                    opposing_key = "away" if team_key == "home" else "home"
+                    opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
+
                     for pid, pinfo in team_info["players"].items():
                         full_name = pinfo["person"]["fullName"]
                         pos = pinfo.get("position", {}).get("abbreviation", "")
@@ -83,7 +88,9 @@ def get_todays_games():
                                 **pitching_stats
                             })
                         else:
-                            batting_stats = get_player_stat_profile(full_name)
+                            base_stats = get_player_stat_profile(full_name)
+                            adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats)
+                            batting_stats = {k: v for k, v in adjusted.items() if k != "Reason"}
                             batters_by_team.setdefault(team_name, []).append({
                                 "name": full_name,
                                 **batting_stats
