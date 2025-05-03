@@ -65,13 +65,13 @@ def get_todays_games():
                 players = []
                 for team_key in ["home", "away"]:
                     team_info = player_data["teams"][team_key]
-                    for pid, pinfo in team_info["players"].items():
+                   for pid, pinfo in team_info["players"].items():
                     full_name = pinfo["person"]["fullName"]
                     stats = get_player_stat_profile(full_name)
                     players.append({
                         "name": full_name,
                         **stats
-                     })
+                    })
 
                 games.append({
                     "id": game_id,
