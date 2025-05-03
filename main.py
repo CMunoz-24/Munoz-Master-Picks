@@ -38,11 +38,11 @@ def get_todays_games():
 
         for date in schedule_data.get("dates", []):
             for game in date.get("games", []):
-             try:
-                home = game["teams"]["home"]["team"]["name"]
-                away = game["teams"]["away"]["team"]["name"]
-                game_id = game["gamePk"]
-                matchup = f"{away} vs {home}"
+                try:
+                    home = game["teams"]["home"]["team"]["name"]
+                    away = game["teams"]["away"]["team"]["name"]
+                    game_id = game["gamePk"]
+                    matchup = f"{away} vs {home}"
 
                 # Match to odds
                 ml = spread = ou = 0.5
@@ -125,17 +125,17 @@ def get_todays_games():
                         })
 
                 games.append({
-                    "id": game_id,
-                    "teams": matchup,
-                    "ml": ml,
-                    "spread": spread,
-                    "ou": ou,
-                    "batters": batters_by_team,
-                    "pitchers": pitchers_by_team
-                })
+            "id": game_id,
+            "teams": matchup,
+            "ml": ml,
+            "spread": spread,
+            "ou": ou,
+            "batters": batters_by_team,
+            "pitchers": pitchers_by_team
+        })
 
     except Exception as e:
-        print(f"Error fetching data: {e}")
+        print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
         print(f"[DEBUG] Total games processed: {len(games)}")
 
     return games
