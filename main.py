@@ -24,6 +24,7 @@ def get_todays_games():
     from datetime import datetime
     today = datetime.now().strftime("%Y-%m-%d")
     games = []
+    print(f"[DEBUG] Date being fetched: {today}")
 
     try:
         # MLB schedule
@@ -186,4 +187,5 @@ def index():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
+
