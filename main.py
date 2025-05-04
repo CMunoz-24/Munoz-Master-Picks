@@ -33,50 +33,49 @@ def get_todays_games():
     print("[DEBUG] get_todays_games() has started")
 
     try:
+        # 1. Fetch MLB schedule
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         print("[DEBUG] Schedule API status code:", schedule_res.status_code)
-        print("[DEBUG] Schedule API response text:", schedule_res.text[:300])
         schedule_data = schedule_res.json()
-        print("[DEBUG] Raw schedule data keys:", schedule_data.keys())
 
         fallback_mode = False
         fallback_data = {}
 
-        try:
-            odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
-            odds_res = requests.get(odds_url)
-            odds_data = odds_res.json()
-            save_odds_cache(odds_data)
+        # 2. Try to use cached odds first
+        odds_data = get_cached_odds()
 
-            remaining = odds_res.headers.get("x-requests-remaining")
-            used = odds_res.headers.get("x-requests-used")
+        if odds_data:
+            print("[CACHE] Loaded valid cached odds, skipping API call.")
+        else:
+            try:
+                odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
+                odds_res = requests.get(odds_url)
+                odds_data = odds_res.json()
+                save_odds_cache(odds_data)
 
-            print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
-            print("[DEBUG] Odds data type:", type(odds_data))
+                remaining = odds_res.headers.get("x-requests-remaining")
+                used = odds_res.headers.get("x-requests-used")
+                print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
 
-            if not isinstance(odds_data, list):
-                raise ValueError("Odds API failed — switching to fallback.")
-        except Exception as e:
-            print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
-            fallback_mode = True
-            fallback_data = get_live_or_fallback_data()
-            odds_data = get_cached_odds() or []
+                if not isinstance(odds_data, list):
+                    raise ValueError("Odds API failed — switching to fallback.")
+            except Exception as e:
+                print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
+                fallback_mode = True
+                fallback_data = get_live_or_fallback_data()
+                odds_data = []
+
+        # 3. Process each scheduled game
         for date in schedule_data.get("dates", []):
-            print(f"[DEBUG] Processing date: {date.get('date')}")
-            games_list = date.get("games", [])
-            print(f"[DEBUG] Games found: {len(games_list)}")
-
-            for game in games_list:
+            for game in date.get("games", []):
                 try:
-                    print(f"[DEBUG] Raw game object: {game}")
                     home = game["teams"]["home"]["team"]["name"]
                     away = game["teams"]["away"]["team"]["name"]
                     game_id = game["gamePk"]
                     matchup = f"{away} vs {home}"
-                    print(f"[DEBUG] Processing game: {matchup} | ID: {game_id}")
 
-                    ml = spread = ou = 0.5
+                    ml = spread = ou = 0.5  # Default values
 
                     for odds_game in odds_data:
                         if (home.lower() in odds_game["home_team"].lower() and
@@ -93,6 +92,7 @@ def get_todays_games():
                                 pass
                             break
 
+                    # 4. Load boxscore data
                     boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
                     player_res = requests.get(boxscore_url)
                     player_data = player_res.json()
@@ -106,8 +106,6 @@ def get_todays_games():
                         opposing_key = "away" if team_key == "home" else "home"
                         opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
 
-                        print(f"[DEBUG] team_info['players'] type: {type(team_info['players'])}")
-
                         for pinfo in team_info["players"].values():
                             full_name = pinfo["person"]["fullName"]
                             pos = pinfo.get("position", {}).get("abbreviation", "")
@@ -119,8 +117,7 @@ def get_todays_games():
 
                                 try:
                                     season_stats = get_player_season_stats(full_name)
-                                except Exception as e:
-                                    print(f"[ERROR] Pitcher stats fetch failed for {full_name}: {e}")
+                                except Exception:
                                     season_stats = {}
 
                                 pitchers_by_team.setdefault(team_name, []).append({
@@ -142,8 +139,7 @@ def get_todays_games():
 
                                 try:
                                     season_stats = get_player_season_stats(full_name)
-                                except Exception as e:
-                                    print(f"[ERROR] Batter stats fetch failed for {full_name}: {e}")
+                                except Exception:
                                     season_stats = {}
 
                                 batters_by_team.setdefault(team_name, []).append({
@@ -171,13 +167,7 @@ def get_todays_games():
                 except Exception as e:
                     print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
-        print(f"[DEBUG] Total games processed: {len(games)}")
-        for g in games:
-            print(f"[DEBUG] Game: {g.get('teams')} — ID: {g.get('id')}")
-
-        remaining = int(odds_res.headers.get("x-requests-remaining", 0)) if not fallback_mode else 0
-        used = int(odds_res.headers.get("x-requests-used", 0)) if not fallback_mode else 0
-        return games, {"remaining": remaining, "used": used}
+        return games, {"remaining": remaining if not fallback_mode else 0, "used": used if not fallback_mode else 0}
 
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
