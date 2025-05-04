@@ -286,6 +286,10 @@ from flask import redirect
 def index():
     return redirect("/home")
 
+@app.route("/top-picks")
+def top_picks():
+    return render_template("top_picks.html")
+
 @app.route('/stats')
 def stats_page():
     if not session.get("logged_in"):
