@@ -9,6 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
 from utils.data_loader import get_live_or_fallback_data
+from data.cache.odds_cache_helper import get_cached_odds_data
 
 load_dotenv()
 app = Flask(__name__)
@@ -58,8 +59,7 @@ def get_todays_games():
             print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
             fallback_mode = True
             fallback_data = get_live_or_fallback_data()
-            odds_data = []
-
+            odds_data = get_cached_odds_data() or []
         for date in schedule_data.get("dates", []):
             print(f"[DEBUG] Processing date: {date.get('date')}")
             games_list = date.get("games", [])
