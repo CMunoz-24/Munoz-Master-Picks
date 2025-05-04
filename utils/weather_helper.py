@@ -3,7 +3,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 
-WEATHERSTACK_KEY = os.getenv("WEATHERSTACK_API_KEY", "115c9056840819162f244cdfee6bd371")
+WEATHERSTACK_API_KEY = os.getenv("WEATHERSTACK_API_KEY")
 
 def fetch_weatherstack_weather(lat, lon):
     try:
