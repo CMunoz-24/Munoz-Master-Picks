@@ -24,3 +24,9 @@ def calculate_probabilities(stats):
             "Walk": 0.0,
             "Strikeout": 0.0
         }
+
+def get_hitter_probabilities(player_name, season_stats):
+    return calculate_probabilities(season_stats)
+
+def get_pitcher_probabilities(player_name, season_stats):
+    return calculate_probabilities(season_stats)
