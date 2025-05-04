@@ -11,6 +11,9 @@ from datetime import datetime
 from utils.data_loader import get_live_or_fallback_data
 from data.cache.odds_cache_helper import get_cached_odds
 from data.cache.odds_cache_helper import save_odds_cache
+from probability_engine import get_hitter_probabilities, get_pitcher_probabilities
+from utils.weather_helper import get_combined_weather
+from utils.weather import get_weather_adjustments
 
 load_dotenv()
 app = Flask(__name__)
@@ -33,7 +36,6 @@ def get_todays_games():
     print("[DEBUG] get_todays_games() has started")
 
     try:
-        # 1. Fetch MLB schedule
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         print("[DEBUG] Schedule API status code:", schedule_res.status_code)
@@ -42,7 +44,10 @@ def get_todays_games():
         fallback_mode = False
         fallback_data = {}
 
-        # 2. Try to use cached odds first
+        # Always define remaining/used even if using cache
+        remaining = "0"
+        used = "0"
+
         odds_data = get_cached_odds()
 
         if odds_data:
@@ -54,9 +59,8 @@ def get_todays_games():
                 odds_data = odds_res.json()
                 save_odds_cache(odds_data)
 
-                remaining = odds_res.headers.get("x-requests-remaining")
-                used = odds_res.headers.get("x-requests-used")
-                print(f"[DEBUG] Odds API quota — Remaining: {remaining}, Used: {used}")
+                remaining = odds_res.headers.get("x-requests-remaining", "0")
+                used = odds_res.headers.get("x-requests-used", "0")
 
                 if not isinstance(odds_data, list):
                     raise ValueError("Odds API failed — switching to fallback.")
@@ -66,7 +70,6 @@ def get_todays_games():
                 fallback_data = get_live_or_fallback_data()
                 odds_data = []
 
-        # 3. Process each scheduled game
         for date in schedule_data.get("dates", []):
             for game in date.get("games", []):
                 try:
@@ -75,13 +78,16 @@ def get_todays_games():
                     game_id = game["gamePk"]
                     matchup = f"{away} vs {home}"
 
-                    ml = spread = ou = 0.5  # Default values
+                    ml = spread = ou = 0.5
 
                     for odds_game in odds_data:
                         if (home.lower() in odds_game["home_team"].lower() and
                             away.lower() in odds_game["away_team"].lower()):
                             try:
-                                markets = {m["key"]: m for m in odds_game["bookmakers"][0]["markets"]}
+                                bookmakers = odds_game.get("bookmakers", [])
+                                if not bookmakers or "markets" not in bookmakers[0]:
+                                    continue
+                                markets = {m["key"]: m for m in bookmakers[0]["markets"]}
                                 if "h2h" in markets:
                                     ml = 0.5 + 0.1 * int("1" in markets["h2h"]["outcomes"][0]["name"])
                                 if "spreads" in markets:
@@ -92,7 +98,6 @@ def get_todays_games():
                                 pass
                             break
 
-                    # 4. Load boxscore data
                     boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
                     player_res = requests.get(boxscore_url)
                     player_data = player_res.json()
@@ -111,32 +116,35 @@ def get_todays_games():
                             pos = pinfo.get("position", {}).get("abbreviation", "")
 
                             if pos == "P":
+                                if "stats" not in pinfo:
+                                    print(f"[SKIP] No stats available for pitcher: {full_name}")
+                                    continue
+
                                 props = get_adjusted_pitcher_props(full_name, fallback_data if fallback_mode else None)
                                 pitcher_stats = {k: v for k, v in props.items() if k not in ["Recommendations", "Reason"]}
                                 recommendations = props.get("Recommendations", {})
-
                                 try:
                                     season_stats = get_player_season_stats(full_name)
-                                except Exception:
+                                except Exception as e:
+                                    print(f"[WARNING] Season stats unavailable for {full_name}: {e}")
                                     season_stats = {}
 
                                 pitchers_by_team.setdefault(team_name, []).append({
                                     "name": full_name,
                                     **pitcher_stats,
-                                    "Probabilities": {
-                                        "Strikeout": round(random.uniform(0.3, 0.7), 2),
-                                        "Walk Allowed": round(random.uniform(0.1, 0.5), 2),
-                                        "Earned Run": round(random.uniform(0.2, 0.6), 2),
-                                    },
+                                    "Probabilities": get_pitcher_probabilities(full_name, season_stats),
                                     "Recommendations": recommendations,
                                     "SeasonStats": season_stats
                                 })
 
                             elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                                if "stats" not in pinfo:
+                                    print(f"[SKIP] No stats available for batter: {full_name}")
+                                    continue
+
                                 base_stats = get_player_stat_profile(full_name)
                                 adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats, fallback_data if fallback_mode else None)
                                 batting_stats = {k: v for k, v in adjusted.items() if k not in ["Recommendations", "Reason"]}
-
                                 try:
                                     season_stats = get_player_season_stats(full_name)
                                 except Exception:
@@ -145,21 +153,46 @@ def get_todays_games():
                                 batters_by_team.setdefault(team_name, []).append({
                                     "name": full_name,
                                     **batting_stats,
-                                    "Probabilities": {
-                                        "Hit": round(random.uniform(0.2, 0.8), 2),
-                                        "HR": round(random.uniform(0.05, 0.3), 2),
-                                        "Walk": round(random.uniform(0.1, 0.4), 2),
-                                    },
+                                    "Probabilities": get_hitter_probabilities(full_name, season_stats),
                                     "Recommendations": adjusted.get("Recommendations", {}),
                                     "SeasonStats": season_stats
                                 })
 
+                    game_date = game.get("officialDate", today)
+
+                    probable_pitchers = {
+                        "home": game["teams"]["home"].get("probablePitcher", {}).get("fullName", "TBD"),
+                        "away": game["teams"]["away"].get("probablePitcher", {}).get("fullName", "TBD")
+                    }
+
+                    lineups = {
+                        "home": [
+                            {
+                                "name": p["person"]["fullName"],
+                                "pos": p.get("position", {}).get("abbreviation", "N/A")
+                            }
+                            for p in player_data["teams"]["home"]["players"].values()
+                            if p.get("position", {}).get("abbreviation", "") in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]
+                        ],
+                        "away": [
+                            {
+                                "name": p["person"]["fullName"],
+                                "pos": p.get("position", {}).get("abbreviation", "N/A")
+                            }
+                            for p in player_data["teams"]["away"]["players"].values()
+                            if p.get("position", {}).get("abbreviation", "") in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]
+                        ]
+                    }
+
                     games.append({
                         "id": game_id,
                         "teams": matchup,
+                        "date": game_date,
                         "ml": ml,
                         "spread": spread,
                         "ou": ou,
+                        "probable_pitchers": probable_pitchers,
+                        "lineups": lineups,
                         "batters": batters_by_team,
                         "pitchers": pitchers_by_team
                     })
@@ -168,10 +201,10 @@ def get_todays_games():
                     print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
         return games, {
-    "remaining": int(remaining) if not fallback_mode and remaining and remaining.isdigit() else 0,
-    "used": int(used) if not fallback_mode and used and used.isdigit() else 0
-}
-    
+            "remaining": int(remaining) if not fallback_mode and remaining.isdigit() else 0,
+            "used": int(used) if not fallback_mode and used.isdigit() else 0
+        }
+
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
         return [], {"remaining": 0, "used": 0}
@@ -184,9 +217,28 @@ def game_detail(game_id):
     if not game:
         return "Game not found", 404
 
-    print(f"[DEBUG] Loaded game object: {game}")
-    print(f"[DEBUG] Batters: {game.get('batters')}")
-    print(f"[DEBUG] Pitchers: {game.get('pitchers')}")
+    from utils.weather import get_weather_adjustments
+    weather = get_weather_adjustments(game.get("teams", ""))
+
+    # Apply weather-based modifications to probabilities and recommendations
+    for team_players in game["batters"].values():
+        for player in team_players:
+            if weather["adjustments"].get("HR Boost") == "+10%":
+                original = player["Probabilities"]["HR"]
+                player["Probabilities"]["HR"] = round(min(original * 1.10, 1.0), 2)
+                player["Recommendations"]["Weather Impact"] = "HR ↑ due to warm weather & wind"
+            if weather["adjustments"].get("Strikeout Drop") == "-5%":
+                if "Strikeout" in player["Probabilities"]:
+                    original = player["Probabilities"]["Strikeout"]
+                    player["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
+                    player["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
+
+    for team_pitchers in game["pitchers"].values():
+        for pitcher in team_pitchers:
+            if weather["adjustments"].get("Strikeout Drop") == "-5%":
+                original = pitcher["Probabilities"]["Strikeout"]
+                pitcher["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
+                pitcher["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
     return render_template("game_detail.html", game={
         "teams": game.get("teams", "N/A"),
@@ -194,7 +246,8 @@ def game_detail(game_id):
         "spread": game.get("spread", "N/A"),
         "ou": game.get("ou", "N/A"),
         "batters": game.get("batters", []),
-        "pitchers": game.get("pitchers", [])
+        "pitchers": game.get("pitchers", []),
+        "weather": weather
     })
 
 @app.route("/login", methods=["GET", "POST"])
