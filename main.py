@@ -5,6 +5,7 @@ from pitcher_engine import get_adjusted_pitcher_props
 from player_stats_helper import get_player_season_stats
 import os
 import requests
+import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
 from utils.data_loader import get_live_or_fallback_data
@@ -243,9 +244,8 @@ def stats_page():
     msf_df = fallback_data.get("mysportsfeeds")
     fg_df = fallback_data.get("fangraphs")
 
-    # Show just a few top rows
-    msf_table = msf_df.head(20).to_dict(orient="records") if not msf_df.empty else []
-    fg_table = fg_df.head(20).to_dict(orient="records") if not fg_df.empty else []
+    msf_table = msf_df.head(20).to_dict(orient="records") if isinstance(msf_df, pd.DataFrame) and not msf_df.empty else []
+    fg_table = fg_df.head(20).to_dict(orient="records") if isinstance(fg_df, pd.DataFrame) and not fg_df.empty else []
 
     return render_template("stats.html", msf_stats=msf_table, fg_stats=fg_table)
 
