@@ -3,6 +3,17 @@
 {% block content %}
 <div class="container">
   <h1>{{ game.teams }}</h1>
+  <div class="game-predictions" style="margin-bottom: 20px; padding: 15px; border: 2px solid #ccc; border-radius: 10px; background-color: #f9f9f9;">
+    <h2 style="margin-bottom: 10px;">🏆 Game Predictions</h2>
+    <ul style="list-style-type: none; padding-left: 0;">
+      <li><strong>Moneyline Pick:</strong> {{ game.game_predictions.moneyline.pick }} 
+        <span style="color: #666;">(Confidence: {{ game.game_predictions.moneyline.confidence }}%)</span></li>
+      <li><strong>Spread Pick:</strong> {{ game.game_predictions.spread.pick }} 
+        <span style="color: #666;">(Confidence: {{ game.game_predictions.spread.confidence }}%)</span></li>
+      <li><strong>Over/Under Pick:</strong> {{ game.game_predictions.over_under.pick }} 
+        <span style="color: #666;">(Confidence: {{ game.game_predictions.over_under.confidence }}%)</span></li>
+    </ul>
+  </div>  
   <p><strong>Date:</strong> {{ game.date }}</p>
   <p><strong>Probable Pitchers:</strong> {{ game.probable_pitchers.away }} vs {{ game.probable_pitchers.home }}</p>
   <p><strong>Weather:</strong> {{ game.weather.conditions }}</p>

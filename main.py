@@ -14,6 +14,14 @@ from data.cache.odds_cache_helper import save_odds_cache
 from probability_engine import get_hitter_probabilities, get_pitcher_probabilities
 from utils.weather_helper import get_combined_weather
 from utils.weather import get_weather_adjustments
+from matchup_engine import generate_adjusted_batter_probabilities, generate_batter_recommendations
+from player_stats import get_player_stats
+from pitcher_engine import generate_pitcher_probabilities, generate_pitcher_recommendations
+from utils.weather_teams import get_coordinates_for_team
+from player_stats_helper import get_vs_pitcher_history
+from utils.park_factors import get_park_adjustments
+from utils.predictor import predict_game_outcome
+from utils.bullpen_evaluator import evaluate_bullpen_strength
 
 load_dotenv()
 app = Flask(__name__)
@@ -120,43 +128,106 @@ def get_todays_games():
                                     print(f"[SKIP] No stats available for pitcher: {full_name}")
                                     continue
 
-                                props = get_adjusted_pitcher_props(full_name, fallback_data if fallback_mode else None)
-                                pitcher_stats = {k: v for k, v in props.items() if k not in ["Recommendations", "Reason"]}
-                                recommendations = props.get("Recommendations", {})
                                 try:
                                     season_stats = get_player_season_stats(full_name)
                                 except Exception as e:
                                     print(f"[WARNING] Season stats unavailable for {full_name}: {e}")
                                     season_stats = {}
 
+                                # 🔍 Get opposing team batters and calculate average lineup strength
+                                try:
+                                    opposing_batters = player_data["teams"][opposing_key]["players"]
+                                    avg_list, obp_list, k_list = [], [], []
+                                    for b in opposing_batters.values():
+                                        b_pos = b.get("position", {}).get("abbreviation", "")
+                                        if b_pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                                            b_name = b["person"]["fullName"]
+                                            try:
+                                                b_stats = get_player_stats(b_name).get("SeasonStats", {})
+                                                avg = float(b_stats.get("AVG", 0.250))
+                                                obp = float(b_stats.get("OBP", 0.320))
+                                                k_pct = float(b_stats.get("K%", 0.20))
+                                                avg_list.append(avg)
+                                                obp_list.append(obp)
+                                                k_list.append(k_pct)
+                                            except Exception:
+                                                continue
+                                    lineup_avg = {
+                                        "AVG": round(sum(avg_list)/len(avg_list), 3) if avg_list else 0.250,
+                                        "OBP": round(sum(obp_list)/len(obp_list), 3) if obp_list else 0.320,
+                                        "K%": round(sum(k_list)/len(k_list), 3) if k_list else 0.20
+                                    }
+                                except Exception as e:
+                                    print(f"[LINEUP ERROR] Could not evaluate opposing lineup: {e}")
+                                    lineup_avg = None
+
+                                # 🏟️ Get ballpark and weather factors
+                                park_name = game["teams"].split(" vs ")[1]  # Home team
+                                from utils.park_factors import get_park_adjustments
+                                from utils.weather import get_weather_adjustments
+
+                                park_factors = get_park_adjustments(park_name)
+                                weather_adj = get_weather_adjustments(park_name)
+
+                                # 🔥 Intelligent pitcher probability engine with park + weather + lineup
+                                probabilities = generate_pitcher_probabilities(
+                                    season_stats,
+                                    opposing_lineup=lineup_avg,
+                                    park_factors=park_factors,
+                                    weather_adjustments=weather_adj.get("adjustments", {})
+                                )
+                                recommendations = generate_pitcher_recommendations(probabilities)
+
                                 pitchers_by_team.setdefault(team_name, []).append({
                                     "name": full_name,
-                                    **pitcher_stats,
-                                    "Probabilities": get_pitcher_probabilities(full_name, season_stats),
+                                    "Probabilities": probabilities,
                                     "Recommendations": recommendations,
                                     "SeasonStats": season_stats
                                 })
 
-                            elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
-                                if "stats" not in pinfo:
-                                    print(f"[SKIP] No stats available for batter: {full_name}")
-                                    continue
+                        elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                            if "stats" not in pinfo:
+                                print(f"[SKIP] No stats available for batter: {full_name}")
+                                continue
 
-                                base_stats = get_player_stat_profile(full_name)
-                                adjusted = get_adjusted_hitter_props(full_name, opposing_pitcher, base_stats, fallback_data if fallback_mode else None)
-                                batting_stats = {k: v for k, v in adjusted.items() if k not in ["Recommendations", "Reason"]}
-                                try:
-                                    season_stats = get_player_season_stats(full_name)
-                                except Exception:
-                                    season_stats = {}
+                            try:
+                                season_stats = get_player_stats(full_name)["SeasonStats"]
+                            except Exception:
+                                season_stats = {}
 
-                                batters_by_team.setdefault(team_name, []).append({
-                                    "name": full_name,
-                                    **batting_stats,
-                                    "Probabilities": get_hitter_probabilities(full_name, season_stats),
-                                    "Recommendations": adjusted.get("Recommendations", {}),
-                                    "SeasonStats": season_stats
-                                })
+                            # Get opposing pitcher season stats
+                            try:
+                                pitcher_stats = get_player_stats(opposing_pitcher)["SeasonStats"]
+                            except Exception:
+                                pitcher_stats = {}
+
+                            # Fetch head-to-head stats
+                            vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
+
+                            # 🏟️ Get park factor based on home team stadium
+                            park_name = game.get("venue", {}).get("name", "default")
+                            park_factor = get_park_adjustments(park_name)
+
+                            # 🌤️ Get weather-based adjustments
+                            home_team = game["teams"].split(" vs ")[1]
+                            weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
+
+                            # Generate matchup-aware probabilities and recommendations
+                            probabilities = generate_adjusted_batter_probabilities(
+                                season_stats,
+                                pitcher_stats,
+                                vs_history=vs_history,
+                                park_adjustment=park_factor,
+                                weather_adjustment=weather_adj
+                            )
+                            recommendations = generate_batter_recommendations(probabilities)
+
+                            batters_by_team.setdefault(team_name, []).append({
+                                "name": full_name,
+                                "Probabilities": probabilities,
+                                "Recommendations": recommendations,
+                                "SeasonStats": season_stats
+                            })
 
                     game_date = game.get("officialDate", today)
 
@@ -184,6 +255,13 @@ def get_todays_games():
                         ]
                     }
 
+                    game_prediction = predict_game_outcome(
+                        batters_by_team,
+                        pitchers_by_team,
+                        park_factors,
+                        weather_adj.get("adjustments", {})
+                    )
+
                     games.append({
                         "id": game_id,
                         "teams": matchup,
@@ -194,7 +272,8 @@ def get_todays_games():
                         "probable_pitchers": probable_pitchers,
                         "lineups": lineups,
                         "batters": batters_by_team,
-                        "pitchers": pitchers_by_team
+                        "pitchers": pitchers_by_team,
+                        "game_predictions": game_prediction
                     })
 
                 except Exception as e:
@@ -211,16 +290,19 @@ def get_todays_games():
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
+    from utils.weather import get_weather_adjustments
+    from game_intelligence import predict_game_outcome
+
     games, _ = get_todays_games()
     game = next((g for g in games if g["id"] == game_id), None)
 
     if not game:
         return "Game not found", 404
 
-    from utils.weather import get_weather_adjustments
-    weather = get_weather_adjustments(game.get("teams", ""))
+    home_team = game["teams"].split(" vs ")[1]
+    weather = get_weather_adjustments(home_team)
 
-    # Apply weather adjustments
+    # 🌤️ Apply weather adjustments to batters
     for team_players in game["batters"].values():
         for player in team_players:
             if weather["adjustments"].get("HR Boost") == "+10%":
@@ -233,12 +315,17 @@ def game_detail(game_id):
                     player["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
                     player["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
+    # 🌤️ Apply weather adjustments to pitchers
     for team_pitchers in game["pitchers"].values():
         for pitcher in team_pitchers:
             if weather["adjustments"].get("Strikeout Drop") == "-5%":
                 original = pitcher["Probabilities"]["Strikeout"]
                 pitcher["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
                 pitcher["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
+
+    # 🧠 Run core intelligence model for moneyline/spread/OU
+    game_predictions = predict_game_outcome(game)
+    game["GamePredictions"] = game_predictions
 
     return render_template("game_detail.html", game={
         "teams": game.get("teams", "N/A"),
@@ -250,7 +337,8 @@ def game_detail(game_id):
         "pitchers": game.get("pitchers", []),
         "lineups": game.get("lineups", {}),
         "probable_pitchers": game.get("probable_pitchers", {}),
-        "weather": weather
+        "weather": weather,
+        "game_predictions": game.get("GamePredictions", {})
     })
 
 @app.route("/login", methods=["GET", "POST"])

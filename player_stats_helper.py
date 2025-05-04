@@ -1,8 +1,32 @@
 # player_stats_helper.py
 
 import requests
-
+import pandas as pd
 import requests
+
+def get_vs_pitcher_history(batter_name, pitcher_name):
+    try:
+        df = pd.read_csv("batter_vs_pitcher.csv")  # You must generate or download this dataset
+        match = df[
+            (df["Batter"].str.lower() == batter_name.lower()) &
+            (df["Pitcher"].str.lower() == pitcher_name.lower())
+        ]
+        if match.empty:
+            return None
+
+        row = match.iloc[0]
+        return {
+            "AB": int(row.get("AB", 0)),
+            "H": int(row.get("H", 0)),
+            "HR": int(row.get("HR", 0)),
+            "BB": int(row.get("BB", 0)),
+            "K": int(row.get("K", 0)),
+            "BA": round(row.get("H", 0) / row.get("AB", 1), 3)
+        }
+    except Exception as e:
+        print(f"[ERROR] Batter vs Pitcher data missing or broken: {e}")
+        return None
+
 
 def fetch_pitcher_data_by_name(name):
     try:

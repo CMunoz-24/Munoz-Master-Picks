@@ -1,48 +1,53 @@
 
-import os
 import requests
-from dotenv import load_dotenv
-from utils.weather_teams import TEAM_LOCATIONS
+from utils.weather_teams import get_coordinates_for_team
+import os
 
-load_dotenv()
+# For Weatherstack API
+WEATHERSTACK_API_KEY = os.getenv("WEATHERSTACK_API_KEY")
 
-WEATHERSTACK_API_KEY = os.getenv("WEATHERSTACK_API_KEY", "115c9056840819162f244cdfee6bd371")
-
-def get_weather_adjustments(matchup_name):
-    for team in TEAM_LOCATIONS:
-        if team in matchup_name:
-            lat = TEAM_LOCATIONS[team]["lat"]
-            lon = TEAM_LOCATIONS[team]["lon"]
-            break
-    else:
-        return {"conditions": "Location unknown", "adjustments": {}}
-
-    try:
-        open_meteo_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,precipitation_probability,windspeed_10m&current_weather=true"
-        response = requests.get(open_meteo_url)
-        data = response.json()
-        current = data.get("current_weather", {})
-
-        temp = current.get("temperature")
-        wind = current.get("windspeed")
-
-        # Add adjustment logic
-        adjustments = {
-            "HR Boost": "+10%" if temp and temp > 80 and wind and wind > 12 else "Neutral",
-            "Strikeout Drop": "-5%" if wind and wind > 15 else "Neutral",
+def get_weather_adjustments(team_name):
+    coords = get_coordinates_for_team(team_name)
+    if not coords:
+        return {
+            "adjustments": {},
+            "conditions": "Location unknown"
         }
 
+    lat, lon = coords
+    try:
+        # Call Open-Meteo
+        open_meteo_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+        res = requests.get(open_meteo_url)
+        data = res.json()
+        current = data.get("current_weather", {})
+
+        temp = current.get("temperature", 70)
+        windspeed = current.get("windspeed", 0)
+        wind_dir = current.get("winddirection", 0)
+
+        conditions = f"{temp}°F, {windspeed}mph wind"
+
+        adjustments = {}
+
+        if temp >= 80 and windspeed >= 10:
+            adjustments["HR Boost"] = "+10%"
+
+        if windspeed >= 12:
+            adjustments["Strikeout Drop"] = "-5%"
+
         return {
-            "conditions": f"{temp}°C, Wind {wind} km/h",
-            "adjustments": adjustments
+            "adjustments": adjustments,
+            "conditions": conditions
         }
 
     except Exception as e:
-        print(f"[WEATHER ERROR] Failed to fetch weather: {e}")
+        print(f"[WEATHER ERROR] {e}")
         return {
-            "conditions": "Weather unavailable",
-            "adjustments": {}
+            "adjustments": {},
+            "conditions": "Unavailable"
         }
+
 
 def get_weatherstack_weather(city):
     try:
