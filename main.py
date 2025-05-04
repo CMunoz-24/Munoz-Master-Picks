@@ -220,7 +220,7 @@ def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     weather = get_weather_adjustments(game.get("teams", ""))
 
-    # Apply weather-based modifications to probabilities and recommendations
+    # Apply weather adjustments
     for team_players in game["batters"].values():
         for player in team_players:
             if weather["adjustments"].get("HR Boost") == "+10%":
@@ -242,11 +242,14 @@ def game_detail(game_id):
 
     return render_template("game_detail.html", game={
         "teams": game.get("teams", "N/A"),
+        "date": game.get("date", "N/A"),
         "ml": game.get("ml", "N/A"),
         "spread": game.get("spread", "N/A"),
         "ou": game.get("ou", "N/A"),
         "batters": game.get("batters", []),
         "pitchers": game.get("pitchers", []),
+        "lineups": game.get("lineups", {}),
+        "probable_pitchers": game.get("probable_pitchers", {}),
         "weather": weather
     })
 
