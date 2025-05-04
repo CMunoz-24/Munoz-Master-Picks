@@ -29,9 +29,12 @@
             background-color: #0054a6;
             color: white;
         }
-        .small {
+        .player-name {
+            font-weight: bold;
+        }
+        .season-stats {
             font-size: 0.85em;
-            color: #444;
+            color: #555;
         }
     </style>
 </head>
@@ -45,28 +48,25 @@
         <table>
             <tr>
                 <th>Player</th>
-                <th>AVG</th>
-                <th>OBP</th>
-                <th>HR</th>
-                <th>Recommendations</th>
-                <th>Season Stats</th>
+                <th>Hit Prob</th>
+                <th>HR Prob</th>
+                <th>Walk Prob</th>
+                <th>Recommendation</th>
             </tr>
             {% for player in players %}
             <tr>
-                <td>{{ player.name }}</td>
-                <td>{{ player.AVG }}</td>
-                <td>{{ player.OBP }}</td>
-                <td>{{ player.HR }}</td>
                 <td>
-                    {% for prop, rec in player.Recommendations.items() %}
-                        <div>{{ prop }} → {{ rec }}</div>
-                    {% endfor %}
+                    <div class="player-name">{{ player.name }}</div>
+                    <div class="season-stats">
+                        Hits: {{ player.SeasonStats.Hits or "N/A" }},
+                        HR: {{ player.SeasonStats.HR or "N/A" }},
+                        Walks: {{ player.SeasonStats.Walks or "N/A" }}
+                    </div>
                 </td>
-                <td class="small">
-                    {% for stat, value in player.SeasonStats.items() %}
-                        <div>{{ stat }}: {{ value }}</div>
-                    {% endfor %}
-                </td>
+                <td>{{ player.Probabilities.Hit }}</td>
+                <td>{{ player.Probabilities.HR }}</td>
+                <td>{{ player.Probabilities.Walk }}</td>
+                <td>{{ player.Recommendations.Hits or "N/A" }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -79,44 +79,29 @@
         <table>
             <tr>
                 <th>Player</th>
-                <th>ERA</th>
-                <th>WHIP</th>
-                <th>K/9</th>
-                <th>Recommendations</th>
-                <th>Season Stats</th>
+                <th>SO Prob</th>
+                <th>Walks Allowed</th>
+                <th>Earned Runs</th>
+                <th>Recommendation</th>
             </tr>
             {% for player in players %}
             <tr>
-                <td>{{ player.name }}</td>
-                <td>{{ player.ERA }}</td>
-                <td>{{ player.WHIP }}</td>
-                <td>{{ player["K/9"] }}</td>
                 <td>
-                    {% for prop, rec in player.Recommendations.items() %}
-                        <div>{{ prop }} → {{ rec }}</div>
-                    {% endfor %}
+                    <div class="player-name">{{ player.name }}</div>
+                    <div class="season-stats">
+                        SO: {{ player.SeasonStats.Strikeouts or "N/A" }},
+                        Walks: {{ player.SeasonStats["Walks Allowed"] or "N/A" }},
+                        ER: {{ player.SeasonStats["Earned Runs"] or "N/A" }}
+                    </div>
                 </td>
-                <td class="small">
-                    {% for stat, value in player.SeasonStats.items() %}
-                        <div>{{ stat }}: {{ value }}</div>
-                    {% endfor %}
-                </td>
+                <td>{{ player.Probabilities.Strikeout }}</td>
+                <td>{{ player.Probabilities["Walk Allowed"] }}</td>
+                <td>{{ player.Probabilities["Earned Run"] }}</td>
+                <td>{{ player.Recommendations.Strikeouts or "N/A" }}</td>
             </tr>
             {% endfor %}
         </table>
     </div>
     {% endfor %}
-
-    <div style="margin-top: 30px; font-size: 0.9em;">
-        <h3>🧠 Bet Confidence Key:</h3>
-        <ul>
-            <li>🔥 Must Bet Over: 0.85 – 1.00</li>
-            <li>✅ Strong Over: 0.65 – 0.84</li>
-            <li>Lean Over: 0.50 – 0.64</li>
-            <li>Lean Under: 0.35 – 0.49</li>
-            <li>❌ Strong Under: 0.20 – 0.34</li>
-            <li>🚫 Avoid Bet: 0.00 – 0.19</li>
-        </ul>
-    </div>
 </body>
 </html>
