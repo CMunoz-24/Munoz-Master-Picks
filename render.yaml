@@ -4,4 +4,11 @@ services:
     name: munoz-master-picks
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
+    startCommand: "gunicorn main:app"
+    envVars:
+      - key: SECRET_KEY
+        value: your_secret_key
+      - key: ODDS_API_KEY
+        value: your_odds_api_key
+      - key: WEATHERSTACK_API_KEY
+        value: your_weatherstack_key
