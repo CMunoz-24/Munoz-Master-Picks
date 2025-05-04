@@ -290,6 +290,18 @@ def index():
 def top_picks():
     return render_template("top_picks.html")
 
+@app.route("/search")
+def search():
+    return render_template("search.html")
+
+@app.route("/lines")
+def lines():
+    return render_template("lines.html")
+
+@app.route("/settings")
+def settings():
+    return render_template("settings.html")
+
 @app.route('/stats')
 def stats_page():
     if not session.get("logged_in"):
