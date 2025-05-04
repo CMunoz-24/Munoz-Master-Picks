@@ -167,8 +167,11 @@ def get_todays_games():
                 except Exception as e:
                     print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
-        return games, {"remaining": remaining if not fallback_mode else 0, "used": used if not fallback_mode else 0}
-
+        return games, {
+    "remaining": int(remaining) if not fallback_mode and remaining and remaining.isdigit() else 0,
+    "used": int(used) if not fallback_mode and used and used.isdigit() else 0
+}
+    
     except Exception as e:
         print(f"[ERROR] Failed to fetch schedule/odds: {e}")
         return [], {"remaining": 0, "used": 0}
