@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 CACHE_PATH = os.path.join("data", "cache", "odds_cache.json")
 CACHE_TTL = timedelta(minutes=15)
 
-def load_cached_odds():
+def get_cached_odds():
     if os.path.exists(CACHE_PATH):
         with open(CACHE_PATH, "r") as f:
             data = json.load(f)
