@@ -29,15 +29,13 @@ def get_cached_odds():
         print(f"[ERROR] Failed to load odds cache: {e}")
         return None
 
-def save_odds_cache(games_list):
+def save_odds_cache(games):
+    """Writes a clean list of game dicts to the cache file."""
     try:
         os.makedirs(os.path.dirname(ODDS_CACHE_PATH), exist_ok=True)
-        payload = {
-            "timestamp": datetime.now().isoformat(),
-            "games": games_list
-        }
         with open(ODDS_CACHE_PATH, "w") as f:
-            json.dump(payload, f, indent=2)
+            json.dump(games, f, indent=2)
         print(f"[CACHE] Odds saved to {ODDS_CACHE_PATH}")
     except Exception as e:
         print(f"[ERROR] Failed to save odds cache: {e}")
+

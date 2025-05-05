@@ -1,18 +1,20 @@
 import json
 import requests
 from odds_cache import save_odds_cache
+from datetime import datetime
 
 def fetch_today_odds():
-    from datetime import datetime
     today = datetime.now().strftime("%Y-%m-%d")
-
     schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team"
-    res = requests.get(schedule_url)
-    if res.status_code != 200:
-        print(f"[ERROR] Failed to fetch schedule: {res.status_code}")
+
+    try:
+        res = requests.get(schedule_url)
+        res.raise_for_status()
+        schedule = res.json()
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch schedule: {e}")
         return []
 
-    schedule = res.json()
     games = []
 
     for date in schedule.get("dates", []):
@@ -21,7 +23,7 @@ def fetch_today_odds():
                 home = game["teams"]["home"]["team"]["name"]
                 away = game["teams"]["away"]["team"]["name"]
                 game_id = game["gamePk"]
-                ml = spread = ou = 0.5  # Default placeholders
+                ml = spread = ou = 0.5  # Placeholder odds
 
                 games.append({
                     "id": game_id,
@@ -38,7 +40,8 @@ def fetch_today_odds():
     return games
 
 def validate_game_structure(game):
-    return all(k in game for k in ["id", "teams", "date", "ml", "spread", "ou"])
+    required_keys = {"id", "teams", "date", "ml", "spread", "ou"}
+    return isinstance(game, dict) and required_keys.issubset(game.keys())
 
 if __name__ == "__main__":
     print("[INFO] Fetching today's games for odds caching...")
@@ -47,6 +50,7 @@ if __name__ == "__main__":
 
     if valid_games:
         save_odds_cache(valid_games)
-        print(f"[SUCCESS] Odds cached at data/cache/odds_cache.json — {len(valid_games)} games saved.")
+        print(f"[✅ SUCCESS] Odds cached at data/cache/odds_cache.json — {len(valid_games)} games saved.")
     else:
         print("[ERROR] No valid games to cache. Skipping odds_cache update.")
+

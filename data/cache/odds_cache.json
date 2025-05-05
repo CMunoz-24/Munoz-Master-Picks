@@ -1,115 +1,112 @@
-{
-  "timestamp": "2025-05-05T12:58:51.789931",
-  "games": [
-    {
-      "id": 778047,
-      "teams": {
-        "home": "Miami Marlins",
-        "away": "Los Angeles Dodgers"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+[
+  {
+    "id": 778047,
+    "teams": {
+      "home": "Miami Marlins",
+      "away": "Los Angeles Dodgers"
     },
-    {
-      "id": 778046,
-      "teams": {
-        "home": "Washington Nationals",
-        "away": "Cleveland Guardians"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778046,
+    "teams": {
+      "home": "Washington Nationals",
+      "away": "Cleveland Guardians"
     },
-    {
-      "id": 778045,
-      "teams": {
-        "home": "New York Yankees",
-        "away": "San Diego Padres"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778045,
+    "teams": {
+      "home": "New York Yankees",
+      "away": "San Diego Padres"
     },
-    {
-      "id": 778049,
-      "teams": {
-        "home": "Atlanta Braves",
-        "away": "Cincinnati Reds"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778049,
+    "teams": {
+      "home": "Atlanta Braves",
+      "away": "Cincinnati Reds"
     },
-    {
-      "id": 778044,
-      "teams": {
-        "home": "Chicago Cubs",
-        "away": "San Francisco Giants"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778044,
+    "teams": {
+      "home": "Chicago Cubs",
+      "away": "San Francisco Giants"
     },
-    {
-      "id": 778043,
-      "teams": {
-        "home": "Kansas City Royals",
-        "away": "Chicago White Sox"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778043,
+    "teams": {
+      "home": "Kansas City Royals",
+      "away": "Chicago White Sox"
     },
-    {
-      "id": 778042,
-      "teams": {
-        "home": "Milwaukee Brewers",
-        "away": "Houston Astros"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778042,
+    "teams": {
+      "home": "Milwaukee Brewers",
+      "away": "Houston Astros"
     },
-    {
-      "id": 778036,
-      "teams": {
-        "home": "St. Louis Cardinals",
-        "away": "Pittsburgh Pirates"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778036,
+    "teams": {
+      "home": "St. Louis Cardinals",
+      "away": "Pittsburgh Pirates"
     },
-    {
-      "id": 778039,
-      "teams": {
-        "home": "Arizona Diamondbacks",
-        "away": "New York Mets"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778039,
+    "teams": {
+      "home": "Arizona Diamondbacks",
+      "away": "New York Mets"
     },
-    {
-      "id": 778038,
-      "teams": {
-        "home": "Athletics",
-        "away": "Seattle Mariners"
-      },
-      "date": "2025-05-05",
-      "ml": 0.5,
-      "spread": 0.5,
-      "ou": 0.5
-    }
-  ]
-}
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  },
+  {
+    "id": 778038,
+    "teams": {
+      "home": "Athletics",
+      "away": "Seattle Mariners"
+    },
+    "date": "2025-05-05",
+    "ml": 0.5,
+    "spread": 0.5,
+    "ou": 0.5
+  }
+]
