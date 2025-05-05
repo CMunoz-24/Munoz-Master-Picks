@@ -2,6 +2,7 @@
 
 from player_stats_helper import get_vs_pitcher_history
 from utils.park_factors import get_park_adjustments
+import pandas as pd
 
 def generate_batter_probabilities(season_stats):
     ba = season_stats.get("BA", 0.0)
@@ -102,8 +103,8 @@ def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=
         obp = 0.320
         hr = 1
 
-        # Match by last name (from MySportsFeeds)
-        if msf_df is not None and not msf_df.empty and "last_name" in msf_df.columns:
+        # ✅ Match by last name (from MySportsFeeds)
+        if isinstance(msf_df, pd.DataFrame) and not msf_df.empty and "last_name" in msf_df.columns:
             last_name = name.split()[-1].lower()
             matched = msf_df[msf_df["last_name"].fillna("").str.lower().str.contains(last_name)]
             if not matched.empty:
@@ -112,9 +113,9 @@ def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=
                 obp = float(row.get("obp", obp))
                 hr = int(row.get("hr", hr))
 
-        # Try to enrich with FanGraphs advanced stats
-        if fg_df is not None and not fg_df.empty:
-            fg_match = fg_df[fg_df["Name"].str.lower().str.contains(name.lower())]
+        # ✅ Try to enrich with FanGraphs advanced stats
+        if isinstance(fg_df, pd.DataFrame) and not fg_df.empty and "Name" in fg_df.columns:
+            fg_match = fg_df[fg_df["Name"].fillna("").str.lower().str.contains(name.lower())]
             if not fg_match.empty:
                 fg_row = fg_match.iloc[0]
                 obp = float(fg_row.get("OBP", obp))
@@ -147,7 +148,7 @@ def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=
             "Reason": f"Fallback-adjusted for {name} (AVG {avg}, OBP {obp}, HR {hr})"
         }
 
-    # Live logic
+    # 🔄 Live logic
     avg = base_stats.get("AVG", 0.250)
     obp = base_stats.get("OBP", 0.320)
     hr = base_stats.get("HR", 1)
