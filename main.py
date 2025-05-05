@@ -1,25 +1,34 @@
 from flask import Flask, render_template, request, redirect, session, url_for
-from matchup_engine import get_adjusted_hitter_props
-from pitcher_engine import get_adjusted_pitcher_props
-from player_stats_helper import get_player_season_stats
 import os
 import requests
 import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
+
+# 🔌 Internal modules
 from utils.data_loader import get_live_or_fallback_data
-from data.cache.odds_cache_helper import get_cached_odds
-from data.cache.odds_cache_helper import save_odds_cache
-from probability_engine import get_hitter_probabilities, get_pitcher_probabilities
-from utils.weather_helper import get_combined_weather
+from data.cache.odds_cache_helper import get_cached_odds, save_odds_cache
 from utils.weather import get_weather_adjustments
-from matchup_engine import generate_adjusted_batter_probabilities, generate_batter_recommendations
-from pitcher_engine import generate_pitcher_probabilities, generate_pitcher_recommendations
 from utils.weather_teams import get_coordinates_for_team
-from player_stats_helper import get_vs_pitcher_history
 from utils.park_factors import get_park_adjustments
-from utils.predictor import predict_game_outcome
-from utils.bullpen_evaluator import evaluate_bullpen_strength
+
+# 🧠 Engines
+from matchup_engine import (
+    generate_adjusted_batter_probabilities,
+    generate_batter_recommendations
+)
+from pitcher_engine import (
+    generate_pitcher_probabilities,
+    generate_pitcher_recommendations
+)
+from predictor import predict_game_outcome
+
+# 📊 Stats helpers
+from player_stats import get_player_stats
+from player_stats_helper import (
+    get_player_season_stats,
+    get_vs_pitcher_history
+)
 
 load_dotenv()
 app = Flask(__name__)
