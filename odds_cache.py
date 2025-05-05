@@ -6,6 +6,7 @@ ODDS_CACHE_PATH = "data/cache/odds_cache.json"
 CACHE_EXPIRY_MINUTES = 15
 
 def get_cached_odds():
+    """Reads the cached odds file from the correct location."""
     if not os.path.exists(ODDS_CACHE_PATH):
         print("[CACHE] Odds cache not found.")
         return None
@@ -13,18 +14,12 @@ def get_cached_odds():
     try:
         with open(ODDS_CACHE_PATH, "r") as f:
             data = json.load(f)
-            if not isinstance(data, dict) or "games" not in data or "timestamp" not in data:
-                print("[CACHE] Malformed cache structure.")
+            if isinstance(data, list) and len(data) > 0:
+                print(f"[CACHE] Loaded {len(data)} cached games.")
+                return data
+            else:
+                print("[CACHE] Cache exists but is empty or malformed.")
                 return None
-
-            ts = datetime.fromisoformat(data["timestamp"])
-            if datetime.now() - ts > timedelta(minutes=CACHE_EXPIRY_MINUTES):
-                print("[CACHE] Odds cache expired.")
-                return None
-
-            print(f"[CACHE] Loaded {len(data['games'])} games from fresh cache.")
-            return data["games"]
-
     except Exception as e:
         print(f"[ERROR] Failed to load odds cache: {e}")
         return None

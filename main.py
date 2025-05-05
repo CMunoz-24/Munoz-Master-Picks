@@ -89,7 +89,6 @@ def get_cached_or_fresh_games():
 
     if not games_today or not last_fetched or (now - last_fetched > timedelta(minutes=15)):
         print("[INFO] Refreshing games_today cache")
-        from utils.game_processing import get_todays_games
         games_today, _ = get_todays_games()
         last_fetched = now
     else:

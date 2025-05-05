@@ -1,4 +1,7 @@
+import sys
 import os
+sys.path.append(os.path.abspath("."))  # <-- Add this to fix import issues
+
 import json
 import requests
 import subprocess
@@ -6,6 +9,7 @@ from flask import Flask
 from multiprocessing import Process
 import time
 
+games = []
 def test_odds_cache_structure():
     print("[🔍] Testing odds_cache.json structure...")
     path = "data/cache/odds_cache.json"
@@ -41,8 +45,10 @@ def test_game_detail_route():
     time.sleep(4)  # Give Flask time to spin up
 
     try:
-        with open("data/cache/odds_cache.json") as f:
-            games = json.load(f)
+        from main import get_cached_or_fresh_games
+        global games
+        games = get_cached_or_fresh_games()
+
         if not games:
             raise ValueError("❌ odds_cache.json is empty.")
 
