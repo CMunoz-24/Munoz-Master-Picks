@@ -1,81 +1,81 @@
 # refresh_fallback_stats.py
 
-import pandas as pd
 import requests
-import time
 import json
+import csv
+import os
 from datetime import datetime
-from pybaseball import statcast_batter, playerid_lookup
 
-START_DATE = "2024-03-01"
-END_DATE = "2024-10-01"
-
-def get_active_players():
-    print("[INFO] Fetching all active MLB players...")
-    url = "https://statsapi.mlb.com/api/v1/people?season=2024&hydrate=stats(group=[hitting,pitching],type=season)&sportId=1&active=true"
+def get_all_team_ids():
+    url = "https://statsapi.mlb.com/api/v1/teams?sportId=1"
     response = requests.get(url)
+    data = response.json()
+    return [team["id"] for team in data.get("teams", [])]
 
-    print("[DEBUG] Raw player API response:")
-    print(json.dumps(response.json(), indent=2))  # 👈 Add this line
+def get_team_roster(team_id):
+    url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
+    response = requests.get(url)
+    return response.json().get("roster", [])
 
-    return response.json().get("people", [])
+def get_player_stats(player_id):
+    url = f"https://statsapi.mlb.com/api/v1/people/{player_id}?hydrate=stats(group=[hitting,pitching],type=season)"
+    response = requests.get(url)
+    data = response.json()
+    person = data.get("people", [{}])[0]
+    name = person.get("fullName", "Unknown Player")
+    stats_blocks = person.get("stats", [])
 
-players = get_active_players()
-print(f"[INFO] Found {len(players)} players")
-
-batter_records = []
-pitcher_records = []
-id_cache = {}
-
-for person in players:
-    try:
-        name = person["fullName"]
-        player_id = person["id"]
-        position = person.get("primaryPosition", {}).get("abbreviation", "")
-        id_cache[name] = player_id
-
-        print(f"[FETCHING] {name} ({position})")
-
-        if position == "P":
-            stats_url = f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats?stats=season&group=pitching"
-            res = requests.get(stats_url).json()
-            splits = res.get("stats", [{}])[0].get("splits", [])
-            if splits:
-                stat = splits[0]["stat"]
-                pitcher_records.append({
-                    "Name": name,
-                    "ERA": float(stat.get("era", 0.0)),
-                    "K_per_9": float(stat.get("strikeOutsPer9Inn", 0.0)),
-                    "IP": float(stat.get("inningsPitched", 0.0))
-                })
-        else:
-            df = statcast_batter(START_DATE, END_DATE, player_id)
-            time.sleep(1)  # Rate limiting
-            games = df.shape[0]
-            hr = df[df["events"] == "home_run"].shape[0]
-            hits = df[df["events"].isin(["single", "double", "triple", "home_run"])].shape[0]
-            strikeouts = df[df["events"] == "strikeout"].shape[0]
-            walks = df[df["events"] == "walk"].shape[0]
-
-            batter_records.append({
-                "Name": name,
-                "G": games,
-                "AB": games,
-                "H": hits,
-                "HR": hr,
-                "K": strikeouts,
-                "BB": walks
+    stats = {"Name": name}
+    for block in stats_blocks:
+        group = block.get("group", {}).get("displayName", "").lower()
+        if not block.get("splits"):
+            continue
+        s = block["splits"][0].get("stat", {})
+        if group == "hitting":
+            stats.update({
+                "G": s.get("gamesPlayed", 0),
+                "AB": s.get("atBats", 0),
+                "H": s.get("hits", 0),
+                "HR": s.get("homeRuns", 0),
+                "K": s.get("strikeOuts", 0),
+                "BB": s.get("baseOnBalls", 0)
             })
+        elif group == "pitching":
+            stats.update({
+                "ERA": s.get("era", 0.0),
+                "K_per_9": s.get("strikeOutsPer9Inn", 0.0),
+                "IP": s.get("inningsPitched", 0.0)
+            })
+    return stats
 
-    except Exception as e:
-        print(f"[SKIP] {name}: {e}")
+def refresh_fallback_stats():
+    print("[INFO] Starting fallback stat refresh...")
+    all_team_ids = get_all_team_ids()
+    players = []
+    for tid in all_team_ids:
+        print(f"[INFO] Fetching roster for team {tid}...")
+        roster = get_team_roster(tid)
+        for player in roster:
+            player_id = player["person"]["id"]
+            try:
+                stats = get_player_stats(player_id)
+                players.append(stats)
+            except Exception as e:
+                print(f"[ERROR] Could not fetch stats for player ID {player_id}: {e}")
 
-# Save fallback stats
-all_records = pd.concat([pd.DataFrame(batter_records), pd.DataFrame(pitcher_records)], ignore_index=True)
-all_records.to_csv("data/fallback_stats.csv", index=False)
+    print(f"[INFO] Found {len(players)} players.")
+    out_path = "data/fallback_stats.csv"
+    os.makedirs("data", exist_ok=True)
 
-# Save player ID cache
-with open("data/player_ids.json", "w") as f:
-    json.dump(id_cache, f, indent=2)
+    if players:
+        keys = set().union(*(d.keys() for d in players))
+        with open(out_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=sorted(keys))
+            writer.writeheader()
+            writer.writerows(players)
+        print(f"[✅ DONE] Fallback stats saved to {out_path}")
+    else:
+        print("[⚠️ WARNING] No player data written.")
 
-print("[✅ DONE] Fallback stats and player IDs updated.")
+if __name__ == "__main__":
+    refresh_fallback_stats()
