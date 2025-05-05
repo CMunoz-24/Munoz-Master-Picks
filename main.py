@@ -80,7 +80,13 @@ def get_todays_games():
     
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
-    games = []
+    from data_loader import get_mlb_schedule_fallback
+
+    games = get_cached_odds()
+    if not games:
+        print("[FALLBACK] Odds cache failed — loading MLB schedule instead.")
+        games = get_mlb_schedule_fallback()
+
     print("[DEBUG] get_todays_games() has started")
 
     try:

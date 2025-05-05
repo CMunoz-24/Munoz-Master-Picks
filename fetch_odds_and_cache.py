@@ -2,6 +2,9 @@ import requests
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("ODDS_API_KEY")
 CACHE_PATH = "data/cache/odds_cache.json"
