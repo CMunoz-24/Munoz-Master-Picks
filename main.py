@@ -129,7 +129,7 @@ def get_todays_games():
 
     # Attempt to load cached odds
     games = get_cached_odds()
-    if games:
+    if games is not None and len(games) > 0:
         print("[CACHE] Loaded valid cached odds, skipping API call.")
         return games, {"remaining": "0", "used": "0"}
 

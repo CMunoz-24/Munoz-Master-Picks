@@ -21,7 +21,7 @@ def evaluate_bullpen_strength(players, fallback_data=None):
                 relievers.append({"ERA": era, "WHIP": whip, "SO9": so9})
             except Exception:
                 # Try fallback
-                if fallback_data:
+                if isinstance(fallback_data, dict) and fallback_data:
                     fg_df = fallback_data.get("fangraphs", None)
                     if fg_df is not None:
                         match = fg_df[fg_df["Name"].str.lower().str.contains(name.lower())]

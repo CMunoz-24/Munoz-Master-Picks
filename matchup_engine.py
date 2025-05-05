@@ -73,14 +73,14 @@ def generate_adjusted_batter_probabilities(season_stats, pitcher_stats, vs_histo
         bb_rate *= (1 + (vs_history["BB"] / vs_history["AB"]))
 
     # Park adjustments
-    if park_adjustment:
+    if park_adjustment is not None:
         hr_factor = park_adjustment.get("HR", 1.0)
         k_factor = park_adjustment.get("K", 1.0)
         hr_rate *= hr_factor
         ba *= 1 - ((k_factor - 1.0) * 0.5)
 
     # Weather adjustments
-    if weather_adjustment:
+    if weather_adjustment is not None:
         if weather_adjustment.get("HR Boost") == "+10%":
             hr_rate *= 1.10
         if weather_adjustment.get("Strikeout Drop") == "-5%":
@@ -93,7 +93,7 @@ def generate_adjusted_batter_probabilities(season_stats, pitcher_stats, vs_histo
     }
 
 def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=None):
-    if fallback_data:
+    if fallback_data is not None:
         print(f"[FALLBACK] Generating hitter props for {name}")
 
         msf_df = fallback_data.get("mysportsfeeds")

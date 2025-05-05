@@ -52,7 +52,7 @@ def generate_pitcher_probabilities(season_stats, opposing_lineup=None, park_fact
     er_per_inning = era / 9
 
     # Opposing lineup adjustments
-    if opposing_lineup:
+    if opposing_lineup is not None and len(opposing_lineup) > 0:
         team_avg = opposing_lineup.get("AVG", 0.250)
         team_obp = opposing_lineup.get("OBP", 0.320)
         team_k_rate = opposing_lineup.get("K%", 0.20)
@@ -67,12 +67,12 @@ def generate_pitcher_probabilities(season_stats, opposing_lineup=None, park_fact
             k_per_inning *= 1.10
 
     # Park adjustments
-    if park_factors:
+    if park_factors is not None:
         k_per_inning *= park_factors.get("K", 1.0)
         er_per_inning *= 2 - park_factors.get("HR", 1.0)
 
     # Weather adjustments
-    if weather_adjustments:
+    if weather_adjustments is not None:
         if weather_adjustments.get("Strikeout Drop") == "-5%":
             k_per_inning *= 0.95
 
