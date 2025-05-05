@@ -67,7 +67,7 @@ def generate_adjusted_batter_probabilities(season_stats, pitcher_stats, vs_histo
         bb_rate *= 1.15
 
     # Historical batter vs pitcher adjustments
-    if vs_history and vs_history["AB"] >= 5:
+    if isinstance(vs_history, dict) and vs_history.get("AB", 0) >= 5:
         ba = (ba + vs_history["BA"]) / 2
         hr_rate *= (1 + (vs_history["HR"] / vs_history["AB"]) * 3)
         bb_rate *= (1 + (vs_history["BB"] / vs_history["AB"]))

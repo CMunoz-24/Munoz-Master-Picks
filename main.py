@@ -8,6 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 from datetime import datetime, timedelta
+import traceback
 
 games_today = []
 last_fetched = None
@@ -238,6 +239,7 @@ def get_todays_games():
 
             except Exception as e:
                 print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
+                traceback.print_exc()
 
     return games, {"remaining": 0, "used": 0}
 
