@@ -1,7 +1,24 @@
-.DS_Store
-.DS_Store
-.env
-.env
+# Python bytecode
 __pycache__/
-*.pyc
-.env.*
+*.py[cod]
+*.so
+
+# Virtual environment
+venv/
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Cache files
+data/cache/
+odds_cache.json
