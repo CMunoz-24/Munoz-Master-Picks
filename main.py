@@ -134,7 +134,6 @@ def get_todays_games():
                                     print(f"[WARNING] Season stats unavailable for {full_name}: {e}")
                                     season_stats = {}
 
-                                # 🔍 Get opposing team batters and calculate average lineup strength
                                 try:
                                     opposing_batters = player_data["teams"][opposing_key]["players"]
                                     avg_list, obp_list, k_list = [], [], []
@@ -161,15 +160,10 @@ def get_todays_games():
                                     print(f"[LINEUP ERROR] Could not evaluate opposing lineup: {e}")
                                     lineup_avg = None
 
-                                # 🏟️ Get ballpark and weather factors
-                                park_name = game["teams"].split(" vs ")[1]  # Home team
-                                from utils.park_factors import get_park_adjustments
-                                from utils.weather import get_weather_adjustments
-
+                                park_name = game["teams"].split(" vs ")[1]
                                 park_factors = get_park_adjustments(park_name)
                                 weather_adj = get_weather_adjustments(park_name)
 
-                                # 🔥 Intelligent pitcher probability engine with park + weather + lineup
                                 probabilities = generate_pitcher_probabilities(
                                     season_stats,
                                     opposing_lineup=lineup_avg,
@@ -185,49 +179,42 @@ def get_todays_games():
                                     "SeasonStats": season_stats
                                 })
 
-                        elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
-                            if "stats" not in pinfo:
-                                print(f"[SKIP] No stats available for batter: {full_name}")
-                                continue
+                            elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                                if "stats" not in pinfo:
+                                    print(f"[SKIP] No stats available for batter: {full_name}")
+                                    continue
 
-                            try:
-                                season_stats = get_player_stats(full_name)["SeasonStats"]
-                            except Exception:
-                                season_stats = {}
+                                try:
+                                    season_stats = get_player_stats(full_name)["SeasonStats"]
+                                except Exception:
+                                    season_stats = {}
 
-                            # Get opposing pitcher season stats
-                            try:
-                                pitcher_stats = get_player_stats(opposing_pitcher)["SeasonStats"]
-                            except Exception:
-                                pitcher_stats = {}
+                                try:
+                                    pitcher_stats = get_player_stats(opposing_pitcher)["SeasonStats"]
+                                except Exception:
+                                    pitcher_stats = {}
 
-                            # Fetch head-to-head stats
-                            vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
+                                vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
+                                park_name = game.get("venue", {}).get("name", "default")
+                                park_factor = get_park_adjustments(park_name)
+                                home_team = game["teams"].split(" vs ")[1]
+                                weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
 
-                            # 🏟️ Get park factor based on home team stadium
-                            park_name = game.get("venue", {}).get("name", "default")
-                            park_factor = get_park_adjustments(park_name)
+                                probabilities = generate_adjusted_batter_probabilities(
+                                    season_stats,
+                                    pitcher_stats,
+                                    vs_history=vs_history,
+                                    park_adjustment=park_factor,
+                                    weather_adjustment=weather_adj
+                                )
+                                recommendations = generate_batter_recommendations(probabilities)
 
-                            # 🌤️ Get weather-based adjustments
-                            home_team = game["teams"].split(" vs ")[1]
-                            weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
-
-                            # Generate matchup-aware probabilities and recommendations
-                            probabilities = generate_adjusted_batter_probabilities(
-                                season_stats,
-                                pitcher_stats,
-                                vs_history=vs_history,
-                                park_adjustment=park_factor,
-                                weather_adjustment=weather_adj
-                            )
-                            recommendations = generate_batter_recommendations(probabilities)
-
-                            batters_by_team.setdefault(team_name, []).append({
-                                "name": full_name,
-                                "Probabilities": probabilities,
-                                "Recommendations": recommendations,
-                                "SeasonStats": season_stats
-                            })
+                                batters_by_team.setdefault(team_name, []).append({
+                                    "name": full_name,
+                                    "Probabilities": probabilities,
+                                    "Recommendations": recommendations,
+                                    "SeasonStats": season_stats
+                                })
 
                     game_date = game.get("officialDate", today)
 
