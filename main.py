@@ -284,14 +284,14 @@ def game_detail(game_id):
                 pitcher["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
                 
     game_predictions = predict_game_outcome(
-        game.get("batters", {}),
-        game.get("pitchers", {}),
-        get_park_adjustments(home_team),
-        weather.get("adjustments", {}),
+        game["batters"],
+        game["pitchers"],
+        get_park_adjustments(game["teams"]["home"]),
+        game.get("weather", {}).get("adjustments", {}),
         home_bullpen_score=0.5,
         away_bullpen_score=0.5
     )
-    
+
     game["GamePredictions"] = predict_game_outcome(game)
     return render_template("game_detail.html", game=game)
 
