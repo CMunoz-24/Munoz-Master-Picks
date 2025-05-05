@@ -103,14 +103,15 @@ def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=
         hr = 1
 
         # Match by last name (from MySportsFeeds)
-        if not msf_df.empty:
+        if msf_df is not None and not msf_df.empty and "last_name" in msf_df.columns:
             last_name = name.split()[-1].lower()
-            matched = msf_df[msf_df["last_name"].str.lower().str.contains(last_name)]
+            matched = msf_df[msf_df["last_name"].fillna("").str.lower().str.contains(last_name)]
             if not matched.empty:
                 row = matched.iloc[0]
                 avg = float(row.get("avg", avg))
                 obp = float(row.get("obp", obp))
                 hr = int(row.get("hr", hr))
+
 
         # Try to enrich with FanGraphs advanced stats
         if not fg_df.empty:
