@@ -313,9 +313,11 @@ def get_todays_games():
                         batters_by_team,
                         pitchers_by_team,
                         park_factors,
-                        weather_adj.get("adjustments", {})
+                        weather_adj.get("adjustments", {}),
+                        home_bullpen_score=0.5,  # temporary default until bullpen logic is added
+                        away_bullpen_score=0.5
                     )
-
+                    
                     games.append({
                         "id": game_id,
                         "teams": matchup,
