@@ -234,22 +234,24 @@ def get_todays_games():
                     },
                     "batters": batters_by_team,
                     "pitchers": pitchers_by_team,
+                    "weather": {"conditions": weather_adj.get("summary", "Unavailable")},
                     "game_predictions": game_prediction
                 })
 
             except Exception as e:
                 print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
                 traceback.print_exc()
+                print(f"[DEBUG] Game keys: {list(game.keys())}")
 
     return games, {"remaining": 0, "used": 0}
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
+    global games_today
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
 
     game = next((g for g in games_today if str(g["id"]) == str(game_id)), None)
-
     if not game:
         return "Game not found", 404
 
