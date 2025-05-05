@@ -21,4 +21,5 @@ logs/
 
 # Cache files
 data/cache/
-odds_cache.json
+!data/cache/odds_cache.json
+
