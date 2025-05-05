@@ -103,8 +103,8 @@ def get_todays_games():
     from utils.weather import get_weather_adjustments
     from utils.park_factors import get_park_adjustments
     from predictor import predict_game_outcome
+    from player_stats import get_player_stats  # ✅ Add this
     from player_stats_helper import (
-        get_player_stats,
         get_vs_pitcher_history,
         generate_adjusted_batter_probabilities,
         generate_batter_recommendations,
@@ -114,7 +114,7 @@ def get_todays_games():
     )
     import requests
     import os
-
+    
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
 
