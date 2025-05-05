@@ -8,7 +8,6 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-
 # Map team name to actual stadium name for park factors
 stadium_map = {
     "Arizona Diamondbacks": "Chase Field",
@@ -81,276 +80,147 @@ MLB_API_URL = "https://statsapi.mlb.com/api/v1/schedule"
 
 def get_todays_games():
     from datetime import datetime
-    
+    from utils.data_loader import get_mlb_schedule_fallback
+    from odds_cache import get_cached_odds
+    from utils.weather import get_weather_adjustments
+    from utils.park_factors import get_park_adjustments
+    from predictor import predict_game_outcome
+    from player_stats_helper import (
+        get_player_stats,
+        get_vs_pitcher_history,
+        generate_adjusted_batter_probabilities,
+        generate_batter_recommendations,
+        generate_pitcher_probabilities,
+        generate_pitcher_recommendations,
+        get_player_season_stats,
+    )
+    import requests
+    import os
+
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
-    from utils.data_loader import get_mlb_schedule_fallback
 
+    # Attempt to load cached odds
     games = get_cached_odds()
-    if not games:
-        print("[FALLBACK] Odds cache failed — loading MLB schedule instead.")
-        games = get_mlb_schedule_fallback()
+    if games:
+        print("[CACHE] Loaded valid cached odds, skipping API call.")
+        return games, {"remaining": "0", "used": "0"}
 
-    print("[DEBUG] get_todays_games() has started")
-
+    # Fallback path starts here
+    print("[FALLBACK] Odds cache failed — calling live API + fallback schedule")
     try:
         schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team,linescore,probablePitcher,person,stats,game(content(summary))"
         schedule_res = requests.get(schedule_url)
         print("[DEBUG] Schedule API status code:", schedule_res.status_code)
         schedule_data = schedule_res.json()
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch schedule: {e}")
+        return [], {"remaining": 0, "used": 0}
 
-        fallback_mode = False
-        fallback_data = {}
-
-        # Always define remaining/used even if using cache
-        remaining = "0"
-        used = "0"
-
-        odds_data = get_cached_odds()
-
-        if odds_data:
-            print("[CACHE] Loaded valid cached odds, skipping API call.")
-        else:
+    games = []
+    for date in schedule_data.get("dates", []):
+        for game in date.get("games", []):
             try:
-                odds_url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,spreads,totals&apiKey={ODDS_API_KEY}"
-                odds_res = requests.get(odds_url)
-                odds_data = odds_res.json()
-                save_odds_cache(odds_data)
+                home = game["teams"]["home"]["team"]["name"]
+                away = game["teams"]["away"]["team"]["name"]
+                game_id = game["gamePk"]
+                matchup = f"{away} vs {home}"
 
-                remaining = odds_res.headers.get("x-requests-remaining", "0")
-                used = odds_res.headers.get("x-requests-used", "0")
+                # Default dummy odds
+                ml = spread = ou = 0.5
 
-                if not isinstance(odds_data, list):
-                    raise ValueError("Odds API failed — switching to fallback.")
-            except Exception as e:
-                print(f"[FALLBACK TRIGGERED] Odds API failed or quota hit: {e}")
-                fallback_mode = True
-                fallback_data = get_live_or_fallback_data()
-                odds_data = []
+                # Get boxscore data
+                boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
+                player_res = requests.get(boxscore_url)
+                player_data = player_res.json()
 
-        for date in schedule_data.get("dates", []):
-            for game in date.get("games", []):
-                try:
-                    home = game["teams"]["home"]["team"]["name"]
-                    away = game["teams"]["away"]["team"]["name"]
-                    game_id = game["gamePk"]
-                    matchup = f"{away} vs {home}"
+                # Process players
+                batters_by_team = {}
+                pitchers_by_team = {}
+                for team_key in ["home", "away"]:
+                    team_info = player_data["teams"][team_key]
+                    team_name = team_info["team"]["name"]
+                    opposing_key = "away" if team_key == "home" else "home"
+                    opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
 
-                    ml = spread = ou = 0.5
+                    for pinfo in team_info["players"].values():
+                        full_name = pinfo["person"]["fullName"]
+                        pos = pinfo.get("position", {}).get("abbreviation", "")
 
-                    for odds_game in odds_data:
-                        if (home.lower() in odds_game["home_team"].lower() and
-                            away.lower() in odds_game["away_team"].lower()):
-                            try:
-                                bookmakers = odds_game.get("bookmakers", [])
-                                if not bookmakers or "markets" not in bookmakers[0]:
-                                    continue
-                                markets = {m["key"]: m for m in bookmakers[0]["markets"]}
-                                if "h2h" in markets:
-                                    ml = 0.5 + 0.1 * int("1" in markets["h2h"]["outcomes"][0]["name"])
-                                if "spreads" in markets:
-                                    spread = 0.6
-                                if "totals" in markets:
-                                    ou = 0.7
-                            except Exception:
-                                pass
-                            break
+                        if pos == "P":
+                            if "stats" not in pinfo:
+                                continue
+                            season_stats = get_player_season_stats(full_name)
+                            lineup_avg = {"AVG": 0.250, "OBP": 0.320, "K%": 0.200}  # You can enhance this with actual lineup parsing
 
-                    boxscore_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
-                    player_res = requests.get(boxscore_url)
-                    player_data = player_res.json()
+                            park_factors = get_park_adjustments(home)
+                            weather_adj = get_weather_adjustments(home)
 
-                    batters_by_team = {}
-                    pitchers_by_team = {}
+                            probabilities = generate_pitcher_probabilities(season_stats, lineup_avg, park_factors, weather_adj["adjustments"])
+                            recommendations = generate_pitcher_recommendations(probabilities)
 
-                    for team_key in ["home", "away"]:
-                        team_info = player_data["teams"][team_key]
-                        team_name = team_info["team"]["name"]
-                        opposing_key = "away" if team_key == "home" else "home"
-                        opposing_pitcher = game["teams"][opposing_key].get("probablePitcher", {}).get("fullName", "Generic Pitcher")
+                            pitchers_by_team.setdefault(team_name, []).append({
+                                "name": full_name,
+                                "Probabilities": probabilities,
+                                "Recommendations": recommendations,
+                                "SeasonStats": season_stats
+                            })
 
-                        for pinfo in team_info["players"].values():
-                            full_name = pinfo["person"]["fullName"]
-                            pos = pinfo.get("position", {}).get("abbreviation", "")
+                        elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
+                            season_stats = get_player_stats(full_name)["SeasonStats"]
+                            pitcher_stats = get_player_stats(opposing_pitcher)["SeasonStats"]
+                            vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
+                            park_factors = get_park_adjustments(home)
+                            weather_adj = get_weather_adjustments(home).get("adjustments", {})
 
-                            if pos == "P":
-                                if "stats" not in pinfo:
-                                    print(f"[SKIP] No stats available for pitcher: {full_name}")
-                                    continue
+                            probabilities = generate_adjusted_batter_probabilities(season_stats, pitcher_stats, vs_history, park_factors, weather_adj)
+                            recommendations = generate_batter_recommendations(probabilities)
 
-                                try:
-                                    season_stats = get_player_season_stats(full_name)
-                                except Exception as e:
-                                    print(f"[WARNING] Season stats unavailable for {full_name}: {e}")
-                                    season_stats = {}
+                            batters_by_team.setdefault(team_name, []).append({
+                                "name": full_name,
+                                "Probabilities": probabilities,
+                                "Recommendations": recommendations,
+                                "SeasonStats": season_stats
+                            })
 
-                                try:
-                                    opposing_batters = player_data["teams"][opposing_key]["players"]
-                                    avg_list, obp_list, k_list = [], [], []
-                                    for b in opposing_batters.values():
-                                        b_pos = b.get("position", {}).get("abbreviation", "")
-                                        if b_pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
-                                            b_name = b["person"]["fullName"]
-                                            try:
-                                                b_stats = get_player_stats(b_name).get("SeasonStats", {})
-                                                avg = float(b_stats.get("AVG", 0.250))
-                                                obp = float(b_stats.get("OBP", 0.320))
-                                                k_pct = float(b_stats.get("K%", 0.20))
-                                                avg_list.append(avg)
-                                                obp_list.append(obp)
-                                                k_list.append(k_pct)
-                                            except Exception:
-                                                continue
-                                    lineup_avg = {
-                                        "AVG": round(sum(avg_list)/len(avg_list), 3) if avg_list else 0.250,
-                                        "OBP": round(sum(obp_list)/len(obp_list), 3) if obp_list else 0.320,
-                                        "K%": round(sum(k_list)/len(k_list), 3) if k_list else 0.20
-                                    }
-                                except Exception as e:
-                                    print(f"[LINEUP ERROR] Could not evaluate opposing lineup: {e}")
-                                    lineup_avg = None
+                # Build game object
+                game_prediction = predict_game_outcome(
+                    batters_by_team,
+                    pitchers_by_team,
+                    get_park_adjustments(home),
+                    weather_adj.get("adjustments", {}),
+                    home_bullpen_score=0.5,
+                    away_bullpen_score=0.5
+                )
 
-                                park_name = game["teams"]["home"]["team"]["name"]
-                                home_team = park_name  # home team name is the stadium owner
-                                # Defensive fix for park_name issues
-                                if isinstance(park_name, dict):
-                                    print(f"[ERROR] park_name was a dict: {park_name}")
-                                    park_name = park_name.get("name") or "Unknown"
-
-                                print(f"[DEBUG] park_name: {park_name}")
-                                park_factors = get_park_adjustments(str(park_name))
-
-                                weather_adj = get_weather_adjustments(park_name)
-
-                                probabilities = generate_pitcher_probabilities(
-                                    season_stats,
-                                    opposing_lineup=lineup_avg,
-                                    park_factors=park_factors,
-                                    weather_adjustments=weather_adj.get("adjustments", {})
-                                )
-                                recommendations = generate_pitcher_recommendations(probabilities)
-
-                                pitchers_by_team.setdefault(team_name, []).append({
-                                    "name": full_name,
-                                    "Probabilities": probabilities,
-                                    "Recommendations": recommendations,
-                                    "SeasonStats": season_stats
-                                })
-
-                            elif pos in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]:
-                                if "stats" not in pinfo:
-                                    print(f"[SKIP] No stats available for batter: {full_name}")
-                                    continue
-
-                                try:
-                                    season_stats = get_player_stats(full_name)["SeasonStats"]
-                                except Exception:
-                                    season_stats = {}
-
-                                try:
-                                    pitcher_stats = get_player_stats(opposing_pitcher)["SeasonStats"]
-                                except Exception:
-                                    pitcher_stats = {}
-
-                                vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
-                                # 🏟️ Get ballpark and weather factors
-                                park_name = game.get("venue", {}).get("name", "default")
-                                from utils.park_factors import get_park_adjustments
-                                from utils.weather import get_weather_adjustments
-
-                                print(f"[DEBUG] Park detected: {park_name}")  # Optional debug
-
-                                park_factors = get_park_adjustments(park_name)
-                                weather_adj = get_weather_adjustments(park_name)
-
-                                park_factor = get_park_adjustments(park_name)
-                                home_team = game["teams"].get("home", "Unknown")
-                                weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
-
-                                probabilities = generate_adjusted_batter_probabilities(
-                                    season_stats,
-                                    pitcher_stats,
-                                    vs_history=vs_history,
-                                    park_adjustment=park_factor,
-                                    weather_adjustment=weather_adj
-                                )
-                                recommendations = generate_batter_recommendations(probabilities)
-
-                                batters_by_team.setdefault(team_name, []).append({
-                                    "name": full_name,
-                                    "Probabilities": probabilities,
-                                    "Recommendations": recommendations,
-                                    "SeasonStats": season_stats
-                                })
-
-                    game_date = game.get("officialDate", today)
-
-                    probable_pitchers = {
+                games.append({
+                    "id": game_id,
+                    "teams": {"home": home, "away": away},
+                    "date": today,
+                    "ml": ml,
+                    "spread": spread,
+                    "ou": ou,
+                    "probable_pitchers": {
                         "home": game["teams"]["home"].get("probablePitcher", {}).get("fullName", "TBD"),
                         "away": game["teams"]["away"].get("probablePitcher", {}).get("fullName", "TBD")
-                    }
+                    },
+                    "batters": batters_by_team,
+                    "pitchers": pitchers_by_team,
+                    "game_predictions": game_prediction
+                })
 
-                    lineups = {
-                        "home": [
-                            {
-                                "name": p["person"]["fullName"],
-                                "pos": p.get("position", {}).get("abbreviation", "N/A")
-                            }
-                            for p in player_data["teams"]["home"]["players"].values()
-                            if p.get("position", {}).get("abbreviation", "") in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]
-                        ],
-                        "away": [
-                            {
-                                "name": p["person"]["fullName"],
-                                "pos": p.get("position", {}).get("abbreviation", "N/A")
-                            }
-                            for p in player_data["teams"]["away"]["players"].values()
-                            if p.get("position", {}).get("abbreviation", "") in ["LF", "CF", "RF", "1B", "2B", "3B", "SS", "C", "DH", "OF", "IF"]
-                        ]
-                    }
+            except Exception as e:
+                print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
 
-                    game_prediction = predict_game_outcome(
-                        batters_by_team,
-                        pitchers_by_team,
-                        park_factors,
-                        weather_adj.get("adjustments", {}),
-                        home_bullpen_score=0.5,  # temporary default until bullpen logic is added
-                        away_bullpen_score=0.5
-                    )
-                    
-                    games.append({
-                        "id": game_id,
-                        "teams": matchup,
-                        "date": game_date,
-                        "ml": ml,
-                        "spread": spread,
-                        "ou": ou,
-                        "probable_pitchers": probable_pitchers,
-                        "lineups": lineups,
-                        "batters": batters_by_team,
-                        "pitchers": pitchers_by_team,
-                        "game_predictions": game_prediction
-                    })
-
-                except Exception as e:
-                    print(f"[ERROR] Failed to process game {game.get('gamePk', '?')}: {e}")
-
-        return games, {
-            "remaining": int(remaining) if not fallback_mode and remaining.isdigit() else 0,
-            "used": int(used) if not fallback_mode and used.isdigit() else 0
-        }
-
-    except Exception as e:
-        print(f"[ERROR] Failed to fetch schedule/odds: {e}")
-        return [], {"remaining": 0, "used": 0}
+    return games, {"remaining": 0, "used": 0}
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
-    
-    games, _ = get_todays_games()
-    game = next((g for g in games if g["id"] == game_id), None)
+
+    game = next((g for g in games_today if g["id"] == game_id), None)
+
 
     if not game:
         return "Game not found", 404
