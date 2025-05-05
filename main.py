@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, session, url_for
-from player_stats import get_player_stat_profile
 from matchup_engine import get_adjusted_hitter_props
 from pitcher_engine import get_adjusted_pitcher_props
 from player_stats_helper import get_player_season_stats
