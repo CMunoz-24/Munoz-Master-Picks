@@ -4,6 +4,10 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
 
 # Map team name to actual stadium name for park factors
 stadium_map = {
