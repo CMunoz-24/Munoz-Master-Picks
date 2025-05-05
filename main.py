@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 # Map team name to actual stadium name for park factors
-team_to_stadium = {
+stadium_map = {
     "Arizona Diamondbacks": "Chase Field",
     "Atlanta Braves": "Truist Park",
     "Baltimore Orioles": "Oriole Park at Camden Yards",
