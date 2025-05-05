@@ -41,7 +41,7 @@ def test_game_detail_route():
     print("[🔍] Testing Flask /game/<id> route...")
 
     # Start Flask in a subprocess
-    flask_process = subprocess.Popen(["python3", "main.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    flask_process = subprocess.Popen(["python3", "main.py", "--host=127.0.0.1", "--port=5000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     time.sleep(4)  # Give Flask time to spin up
 
     try:
@@ -55,6 +55,11 @@ def test_game_detail_route():
         test_game_id = games[0]["id"]
         url = f"http://127.0.0.1:5000/game/{test_game_id}"
         response = requests.get(url)
+
+        # 🔍 Debugging output
+        print("Status code:", response.status_code)
+        print("Response body preview:", response.text[:500])
+
         assert response.status_code == 200
         assert "Player Probabilities" in response.text or "Recommendations" in response.text
         print(f"✅ /game/{test_game_id} route loaded successfully.\n")
