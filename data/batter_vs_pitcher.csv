@@ -1,2 +1,4 @@
-batter,pitcher,at_bats,hits,home_runs,strikeouts
-Sample Hitter,Sample Pitcher,12,4,1,3
+Batter,Pitcher,AVG,HR,K,AB,H
+Pete Alonso,Max Scherzer,0.280,1,3,10,3
+Aaron Judge,Shohei Ohtani,0.260,2,4,15,4
+Juan Soto,Justin Verlander,0.310,1,2,13,4

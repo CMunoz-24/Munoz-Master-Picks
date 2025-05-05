@@ -5,8 +5,46 @@ import os
 # For Weatherstack API
 WEATHERSTACK_API_KEY = os.getenv("WEATHERSTACK_API_KEY")
 
+# Stadium coordinates for weather-based adjustments
+park_coordinates = {
+    "Yankee Stadium": (40.8296, -73.9262),
+    "Fenway Park": (42.3467, -71.0972),
+    "Rogers Centre": (43.6414, -79.3894),
+    "Tropicana Field": (27.7683, -82.6534),  # not used this year
+    "George M. Steinbrenner Field": (27.9759, -82.5033),  # Rays temp home
+    "Oriole Park at Camden Yards": (39.2839, -76.6219),
+    "Progressive Field": (41.4962, -81.6852),
+    "Comerica Park": (42.3390, -83.0485),
+    "Guaranteed Rate Field": (41.8299, -87.6338),
+    "Kauffman Stadium": (39.0517, -94.4803),
+    "Target Field": (44.9817, -93.2789),
+    "Minute Maid Park": (29.7573, -95.3555),
+    "Angel Stadium": (33.8003, -117.8827),
+    "RingCentral Coliseum": (37.7516, -122.2005),  # not used this year
+    "Sutter Health Park": (38.5802, -121.5131),  # Athletics temp home
+    "T-Mobile Park": (47.5914, -122.3325),
+    "Globe Life Field": (32.7473, -97.0847),
+    "Citizens Bank Park": (39.9061, -75.1665),
+    "Truist Park": (33.8908, -84.4678),
+    "loanDepot Park": (25.7780, -80.2195),
+    "Nationals Park": (38.8730, -77.0074),
+    "Wrigley Field": (41.9484, -87.6553),
+    "Great American Ball Park": (39.0975, -84.5070),
+    "American Family Field": (43.0280, -87.9711),
+    "PNC Park": (40.4469, -80.0057),
+    "Busch Stadium": (38.6226, -90.1928),
+    "Chase Field": (33.4455, -112.0667),
+    "Coors Field": (39.7559, -104.9942),
+    "Dodger Stadium": (34.0739, -118.2400),
+    "Petco Park": (32.7073, -117.1573),
+    "Oracle Park": (37.7786, -122.3893),
+}
+
+def get_coordinates_for_team(park_name):
+    return park_coordinates.get(park_name, (None, None))
+
 def get_weather_adjustments(team_name):
-    coords = park_coordinates.get(team_name, (None, None))
+    coords = get_coordinates_for_team(team_name)
     if not coords:
         return {
             "adjustments": {},
