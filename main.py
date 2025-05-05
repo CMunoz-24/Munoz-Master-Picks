@@ -213,7 +213,7 @@ def get_todays_games():
                                 weather_adj = get_weather_adjustments(park_name)
 
                                 park_factor = get_park_adjustments(park_name)
-                                home_team = game["teams"].split(" vs ")[1]
+                                home_team = game["teams"].get("home", "Unknown")
                                 weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
 
                                 probabilities = generate_adjusted_batter_probabilities(
@@ -302,7 +302,7 @@ def game_detail(game_id):
     if not game:
         return "Game not found", 404
 
-    home_team = game["teams"].split(" vs ")[1]
+    home_team = game["teams"].get("home", "Unknown")
     weather = get_weather_adjustments(home_team)
 
     # 🌤️ Apply weather adjustments to batters
