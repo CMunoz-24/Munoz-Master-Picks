@@ -1,39 +1,43 @@
-import os
 import json
+import os
 from datetime import datetime, timedelta
 
-CACHE_FILE = "odds_cache.json"
-CACHE_EXPIRATION_MINUTES = 15
-
-def is_cache_valid():
-    """Check if the cached file exists and is not too old."""
-    if not os.path.exists(CACHE_FILE):
-        return False
-
-    modified_time = datetime.fromtimestamp(os.path.getmtime(CACHE_FILE))
-    if datetime.now() - modified_time > timedelta(minutes=CACHE_EXPIRATION_MINUTES):
-        print("[CACHE] Cache is too old.")
-        return False
-
-    return True
+ODDS_CACHE_PATH = "data/cache/odds_cache.json"
+CACHE_EXPIRY_MINUTES = 15
 
 def get_cached_odds():
-    """Load odds from cache if valid."""
-    if is_cache_valid():
-        try:
-            with open(CACHE_FILE, "r") as f:
-                data = json.load(f)
-                print("[CACHE] Loaded odds from cache.")
-                return data
-        except Exception as e:
-            print(f"[CACHE ERROR] Failed to load: {e}")
-    return []
+    if not os.path.exists(ODDS_CACHE_PATH):
+        print("[CACHE] Odds cache not found.")
+        return None
 
-def save_odds_cache(data):
-    """Save odds to cache."""
     try:
-        with open(CACHE_FILE, "w") as f:
-            json.dump(data, f)
-            print("[CACHE] Odds cached successfully.")
+        with open(ODDS_CACHE_PATH, "r") as f:
+            data = json.load(f)
+            if not isinstance(data, dict) or "games" not in data or "timestamp" not in data:
+                print("[CACHE] Malformed cache structure.")
+                return None
+
+            ts = datetime.fromisoformat(data["timestamp"])
+            if datetime.now() - ts > timedelta(minutes=CACHE_EXPIRY_MINUTES):
+                print("[CACHE] Odds cache expired.")
+                return None
+
+            print(f"[CACHE] Loaded {len(data['games'])} games from fresh cache.")
+            return data["games"]
+
     except Exception as e:
-        print(f"[CACHE ERROR] Failed to save: {e}")
+        print(f"[ERROR] Failed to load odds cache: {e}")
+        return None
+
+def save_odds_cache(games_list):
+    try:
+        os.makedirs(os.path.dirname(ODDS_CACHE_PATH), exist_ok=True)
+        payload = {
+            "timestamp": datetime.now().isoformat(),
+            "games": games_list
+        }
+        with open(ODDS_CACHE_PATH, "w") as f:
+            json.dump(payload, f, indent=2)
+        print(f"[CACHE] Odds saved to {ODDS_CACHE_PATH}")
+    except Exception as e:
+        print(f"[ERROR] Failed to save odds cache: {e}")
