@@ -345,8 +345,8 @@ def get_todays_games():
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
     from utils.weather import get_weather_adjustments
-    from game_intelligence import predict_game_outcome
-
+    from predictor import predict_game_outcome
+    
     games, _ = get_todays_games()
     game = next((g for g in games if g["id"] == game_id), None)
 
@@ -354,7 +354,11 @@ def game_detail(game_id):
         return "Game not found", 404
 
     home_team = game["teams"].get("home", "Unknown")
-    weather = get_weather_adjustments(home_team)
+    try:
+        weather = get_weather_adjustments(home_team)
+    except Exception as e:
+        print(f"[ERROR] Weather fetch failed: {e}")
+        weather = {"adjustments": {}, "description": "Unavailable"}
 
     # 🌤️ Apply weather adjustments to batters
     for team_players in game["batters"].values():
