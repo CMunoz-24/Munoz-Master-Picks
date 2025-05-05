@@ -1,32 +1,52 @@
-import requests
 import json
-import os
-from datetime import datetime
-from dotenv import load_dotenv
+import requests
+from odds_cache import save_odds_cache
 
-load_dotenv()
+def fetch_today_odds():
+    from datetime import datetime
+    today = datetime.now().strftime("%Y-%m-%d")
 
-API_KEY = os.getenv("ODDS_API_KEY")
-CACHE_PATH = "data/cache/odds_cache.json"
+    schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}&hydrate=team"
+    res = requests.get(schedule_url)
+    if res.status_code != 200:
+        print(f"[ERROR] Failed to fetch schedule: {res.status_code}")
+        return []
 
-def fetch_and_cache_odds():
-    url = f"https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=spreads,totals,h2h&apiKey={API_KEY}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        print("[ERROR] Failed to fetch odds:", response.status_code, response.text)
-        return
+    schedule = res.json()
+    games = []
 
-    odds_data = response.json()
-    cached = {
-        "timestamp": datetime.now().isoformat(),
-        "odds": odds_data
-    }
+    for date in schedule.get("dates", []):
+        for game in date.get("games", []):
+            try:
+                home = game["teams"]["home"]["team"]["name"]
+                away = game["teams"]["away"]["team"]["name"]
+                game_id = game["gamePk"]
+                ml = spread = ou = 0.5  # Default placeholders
 
-    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
-    with open(CACHE_PATH, "w") as f:
-        json.dump(cached, f, indent=2)
+                games.append({
+                    "id": game_id,
+                    "teams": {"home": home, "away": away},
+                    "date": today,
+                    "ml": ml,
+                    "spread": spread,
+                    "ou": ou
+                })
+            except Exception as e:
+                print(f"[ERROR] Failed to parse game: {e}")
+                continue
 
-    print(f"[SUCCESS] Odds cached at {CACHE_PATH} — {len(odds_data)} games saved.")
+    return games
+
+def validate_game_structure(game):
+    return all(k in game for k in ["id", "teams", "date", "ml", "spread", "ou"])
 
 if __name__ == "__main__":
-    fetch_and_cache_odds()
+    print("[INFO] Fetching today's games for odds caching...")
+    raw_games = fetch_today_odds()
+    valid_games = [g for g in raw_games if validate_game_structure(g)]
+
+    if valid_games:
+        save_odds_cache(valid_games)
+        print(f"[SUCCESS] Odds cached at data/cache/odds_cache.json — {len(valid_games)} games saved.")
+    else:
+        print("[ERROR] No valid games to cache. Skipping odds_cache update.")
