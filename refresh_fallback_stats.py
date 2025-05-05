@@ -14,6 +14,10 @@ def get_active_players():
     print("[INFO] Fetching all active MLB players...")
     url = "https://statsapi.mlb.com/api/v1/people?season=2024&hydrate=stats(group=[hitting,pitching],type=season)&sportId=1&active=true"
     response = requests.get(url)
+
+    print("[DEBUG] Raw player API response:")
+    print(json.dumps(response.json(), indent=2))  # 👈 Add this line
+
     return response.json().get("people", [])
 
 players = get_active_players()
