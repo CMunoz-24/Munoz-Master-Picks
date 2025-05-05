@@ -10,6 +10,7 @@ from utils.data_loader import get_live_or_fallback_data
 from data.cache.odds_cache_helper import get_cached_odds, save_odds_cache
 from utils.weather import get_weather_adjustments
 from utils.park_factors import get_park_adjustments
+from utils.predictor import predict_game_outcome
 
 # 🧠 Engines
 from matchup_engine import (
