@@ -248,8 +248,7 @@ def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
 
-    game = next((g for g in games_today if g["id"] == game_id), None)
-
+    game = next((g for g in games_today if str(g["id"]) == str(game_id)), None)
 
     if not game:
         return "Game not found", 404
