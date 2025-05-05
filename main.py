@@ -97,24 +97,33 @@ def get_cached_or_fresh_games():
     return games_today
 
 def get_todays_games():
+    from matchup_engine import (
+        generate_adjusted_batter_probabilities,
+        generate_batter_recommendations
+    )
+
+    from pitcher_engine import (
+        generate_pitcher_probabilities,
+        generate_pitcher_recommendations
+    )
+
+    from player_stats_helper import (
+        get_vs_pitcher_history,
+        get_player_season_stats
+    )
+
+    from player_stats import get_player_stats
+
     from datetime import datetime
     from utils.data_loader import get_mlb_schedule_fallback
     from odds_cache import get_cached_odds
     from utils.weather import get_weather_adjustments
     from utils.park_factors import get_park_adjustments
     from predictor import predict_game_outcome
-    from player_stats import get_player_stats  # ✅ Add this
-    from player_stats_helper import (
-        get_vs_pitcher_history,
-        generate_adjusted_batter_probabilities,
-        generate_batter_recommendations,
-        generate_pitcher_probabilities,
-        generate_pitcher_recommendations,
-        get_player_season_stats,
-    )
+
     import requests
     import os
-    
+
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
 
