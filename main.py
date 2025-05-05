@@ -246,28 +246,28 @@ def get_todays_games():
 
 @app.route("/game/<int:game_id>")
 def game_detail(game_id):
-    global games_today
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
-
+    from main import get_cached_or_fresh_games
+    
     # Find game from current games_today list
+    games_today, _ = get_cached_or_fresh_games()
     game = next((g for g in games_today if int(g["id"]) == int(game_id)), None)
     if not game:
         return "Game not found", 404
 
     home_team = game["teams"].get("home", "Unknown")
-
     try:
         weather = get_weather_adjustments(home_team)
     except Exception as e:
         print(f"[ERROR] Weather fetch failed: {e}")
-        weather = {"adjustments": {}, "description": "Unavailable"}    
+        weather = {"adjustments": {}, "description": "Unavailable"}
 
-    # 🌤️ Apply weather adjustments to batters
+    # Apply weather-based adjustments
     for team_players in game.get("batters", {}).values():
         for player in team_players:
             if weather["adjustments"].get("HR Boost") == "+10%":
-                original = player["Probabilities"].get("HR", 0)
+                original = player["Probabilities"]["HR"]
                 player["Probabilities"]["HR"] = round(min(original * 1.10, 1.0), 2)
                 player["Recommendations"]["Weather Impact"] = "HR ↑ due to warm weather & wind"
             if weather["adjustments"].get("Strikeout Drop") == "-5%":
@@ -276,20 +276,15 @@ def game_detail(game_id):
                     player["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
                     player["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
-    # 🌤️ Apply weather adjustments to pitchers
     for team_pitchers in game.get("pitchers", {}).values():
         for pitcher in team_pitchers:
             if weather["adjustments"].get("Strikeout Drop") == "-5%":
-                original = pitcher["Probabilities"].get("Strikeout", 0)
+                original = pitcher["Probabilities"]["Strikeout"]
                 pitcher["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
                 pitcher["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
-    # 🧠 Add intelligent moneyline/spread/OU predictions
-    game_predictions = predict_game_outcome(game)
-    game["GamePredictions"] = game_predictions
-
+    game["GamePredictions"] = predict_game_outcome(game)
     return render_template("game_detail.html", game=game)
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
