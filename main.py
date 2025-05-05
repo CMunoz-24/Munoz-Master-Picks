@@ -250,7 +250,6 @@ def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
 
-    games = get_cached_or_fresh_games()
     game = next((g for g in games if int(g["id"]) == int(game_id)), None)
     if not game:
         return "Game not found", 404
@@ -261,6 +260,10 @@ def game_detail(game_id):
     except Exception as e:
         print(f"[ERROR] Weather fetch failed: {e}")
         weather = {"adjustments": {}, "description": "Unavailable"}
+
+    # ✅ Add these fallbacks
+    game.setdefault("batters", {})
+    game.setdefault("pitchers", {})
 
     # 🌤️ Apply weather adjustments to batters
     for team_players in game["batters"].values():
