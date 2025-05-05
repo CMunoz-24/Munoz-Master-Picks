@@ -1,7 +1,6 @@
 # matchup_engine.py
 
-from player_stats_helper import get_pitcher_stats_by_name
-from player_stats_helper import get_pitcher_stats_by_name, get_vs_pitcher_history
+from player_stats_helper import get_vs_pitcher_history
 from utils.park_factors import get_park_adjustments
 
 def generate_batter_probabilities(season_stats):

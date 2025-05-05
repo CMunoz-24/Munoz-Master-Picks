@@ -9,7 +9,6 @@ from datetime import datetime
 from utils.data_loader import get_live_or_fallback_data
 from data.cache.odds_cache_helper import get_cached_odds, save_odds_cache
 from utils.weather import get_weather_adjustments
-from utils.weather_teams import get_coordinates_for_team
 from utils.park_factors import get_park_adjustments
 
 # 🧠 Engines
@@ -43,8 +42,7 @@ MLB_API_URL = "https://statsapi.mlb.com/api/v1/schedule"
 
 def get_todays_games():
     from datetime import datetime
-    import random
-
+    
     today = datetime.now().strftime("%Y-%m-%d")
     print(f"[DEBUG] Date being fetched: {today}")
     games = []
