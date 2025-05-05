@@ -250,26 +250,24 @@ def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
 
-    game = next((g for g in games if int(g["id"]) == int(game_id)), None)
+    # Find game from current games_today list
+    game = next((g for g in games_today if int(g["id"]) == int(game_id)), None)
     if not game:
         return "Game not found", 404
 
     home_team = game["teams"].get("home", "Unknown")
+
     try:
         weather = get_weather_adjustments(home_team)
     except Exception as e:
         print(f"[ERROR] Weather fetch failed: {e}")
-        weather = {"adjustments": {}, "description": "Unavailable"}
-
-    # ✅ Add these fallbacks
-    game.setdefault("batters", {})
-    game.setdefault("pitchers", {})
+        weather = {"adjustments": {}, "description": "Unavailable"}    
 
     # 🌤️ Apply weather adjustments to batters
-    for team_players in game["batters"].values():
+    for team_players in game.get("batters", {}).values():
         for player in team_players:
             if weather["adjustments"].get("HR Boost") == "+10%":
-                original = player["Probabilities"]["HR"]
+                original = player["Probabilities"].get("HR", 0)
                 player["Probabilities"]["HR"] = round(min(original * 1.10, 1.0), 2)
                 player["Recommendations"]["Weather Impact"] = "HR ↑ due to warm weather & wind"
             if weather["adjustments"].get("Strikeout Drop") == "-5%":
@@ -279,18 +277,19 @@ def game_detail(game_id):
                     player["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
     # 🌤️ Apply weather adjustments to pitchers
-    for team_pitchers in game["pitchers"].values():
+    for team_pitchers in game.get("pitchers", {}).values():
         for pitcher in team_pitchers:
             if weather["adjustments"].get("Strikeout Drop") == "-5%":
-                original = pitcher["Probabilities"]["Strikeout"]
+                original = pitcher["Probabilities"].get("Strikeout", 0)
                 pitcher["Probabilities"]["Strikeout"] = round(max(original * 0.95, 0.0), 2)
                 pitcher["Recommendations"]["Weather Impact"] = "Strikeout ↓ due to wind"
 
-    # 🧠 Run core intelligence model for moneyline/spread/OU
+    # 🧠 Add intelligent moneyline/spread/OU predictions
     game_predictions = predict_game_outcome(game)
     game["GamePredictions"] = game_predictions
 
     return render_template("game_detail.html", game=game)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
@@ -373,4 +372,6 @@ if __name__ == '__main__':
                 print("Invalid port specified. Using default 5000.")
 
     app.run(host=host, port=port, debug=True)
-
+    # ✅ Add these fallbacks
+    game.setdefault("batters", {})
+    game.setdefault("pitchers", {})

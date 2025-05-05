@@ -56,13 +56,13 @@ def test_game_detail_route():
         url = f"http://127.0.0.1:5000/game/{test_game_id}"
         response = requests.get(url)
 
-        # 🔍 Debugging output
         print("Status code:", response.status_code)
         print("Response body preview:", response.text[:500])
 
-        assert response.status_code == 200
+        assert response.status_code == 200, f"❌ Failed to load /game/{test_game_id} — Status {response.status_code}"
         assert "Player Probabilities" in response.text or "Recommendations" in response.text
         print(f"✅ /game/{test_game_id} route loaded successfully.\n")
+
     finally:
         flask_process.terminate()
 
