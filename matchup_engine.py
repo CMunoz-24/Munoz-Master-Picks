@@ -112,7 +112,6 @@ def get_adjusted_hitter_props(name, opposing_pitcher, base_stats, fallback_data=
                 obp = float(row.get("obp", obp))
                 hr = int(row.get("hr", hr))
 
-
         # Try to enrich with FanGraphs advanced stats
         if fg_df is not None and not fg_df.empty:
             fg_match = fg_df[fg_df["Name"].str.lower().str.contains(name.lower())]
