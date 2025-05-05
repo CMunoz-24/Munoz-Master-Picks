@@ -5,6 +5,16 @@ import pandas as pd
 import requests
 from pybaseball import playerid_lookup, statcast_batter
 
+def get_vs_pitcher_history(batter_name, pitcher_name):
+    try:
+        df = pd.read_csv("data/batter_vs_pitcher.csv")
+        df = df[df["Batter"] == batter_name]
+        df = df[df["Pitcher"] == pitcher_name]
+        return df
+    except Exception as e:
+        print(f"[ERROR] BvP fallback failed: {e}")
+        return pd.DataFrame()
+
 def get_batter_vs_pitcher(batter_name, pitcher_name):
     try:
         df = pd.read_csv("data/batter_vs_pitcher.csv")  # Must match project path
