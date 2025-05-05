@@ -6,7 +6,7 @@ import requests
 
 def get_vs_pitcher_history(batter_name, pitcher_name):
     try:
-        df = pd.read_csv("batter_vs_pitcher.csv")  # You must generate or download this dataset
+        df = pd.read_csv("data/batter_vs_pitcher.csv")  # You must generate or download this dataset
         match = df[
             (df["Batter"].str.lower() == batter_name.lower()) &
             (df["Pitcher"].str.lower() == pitcher_name.lower())

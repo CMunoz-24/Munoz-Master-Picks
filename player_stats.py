@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 # fallback CSV path
-FALLBACK_CSV = "fallback_stats.csv"
+FALLBACK_CSV = "data/fallback_stats.csv"
 
 def get_player_stats(player_name):
     season_stats = {}
