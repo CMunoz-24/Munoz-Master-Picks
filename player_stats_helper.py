@@ -11,7 +11,7 @@ def safe_player_lookup(player_name):
         if len(name_parts) >= 2:
             first, last = name_parts[0], " ".join(name_parts[1:])
             results = playerid_lookup(last, first)
-            if not results.empty:
+            if results is not None and not results.empty:
                 return results.iloc[0]['key_mlbam']
     except Exception as e:
         print(f"[LOOKUP ERROR] Could not resolve {player_name}: {e}")
@@ -128,7 +128,7 @@ def fetch_pitcher_data_by_name(name):
         search_url = f"https://statsapi.mlb.com/api/v1/people/search?name={name}"
         search_response = requests.get(search_url).json()
         results = search_response.get("people", [])
-        if not results:
+        if results is None:
             raise ValueError(f"No player found with name: {name}")
         
         player_id = results[0]["id"]
@@ -172,7 +172,7 @@ def get_player_season_stats(player_name):
 
         for record in stat_res.get("stats", []):
             splits = record.get("splits", [])
-            if not splits:
+            if splits is None or len(splits) == 0:
                 continue
             stat_type = record.get("group", {}).get("displayName", "").lower()
             stat_data = splits[0].get("stat", {})
