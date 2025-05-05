@@ -6,7 +6,7 @@ import os
 WEATHERSTACK_API_KEY = os.getenv("WEATHERSTACK_API_KEY")
 
 def get_weather_adjustments(team_name):
-    coords = get_coordinates_for_team(team_name)
+    coords = park_coordinates.get(team_name, (None, None))
     if not coords:
         return {
             "adjustments": {},
