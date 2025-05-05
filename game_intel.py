@@ -4,7 +4,7 @@ from utils.weather import get_weather_adjustments
 from utils.park_factors import get_park_adjustments
 
 def score_team_offense(lineup_stats):
-    if not lineup_stats:
+    if lineup_stats is None or lineup_stats.empty:
         return 50.0
 
     avg = sum(p.get("AVG", 0.25) for p in lineup_stats) / len(lineup_stats)

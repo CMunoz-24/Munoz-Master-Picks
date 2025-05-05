@@ -5,6 +5,18 @@ import pandas as pd
 import requests
 from pybaseball import playerid_lookup, statcast_batter
 
+def safe_player_lookup(player_name):
+    try:
+        name_parts = player_name.strip().replace('.', '').split()
+        if len(name_parts) >= 2:
+            first, last = name_parts[0], " ".join(name_parts[1:])
+            results = playerid_lookup(last, first)
+            if not results.empty:
+                return results.iloc[0]['key_mlbam']
+    except Exception as e:
+        print(f"[LOOKUP ERROR] Could not resolve {player_name}: {e}")
+    return None
+
 def get_vs_pitcher_history(batter_name, pitcher_name):
     try:
         df = pd.read_csv("data/batter_vs_pitcher.csv")
@@ -35,11 +47,11 @@ def get_batter_vs_pitcher(batter_name, pitcher_name):
 
 def get_batter_stats(player_name):
     try:
-        pid_df = playerid_lookup(*player_name.split())
+        pid_df = safe_player_lookup(player_name)
         if pid_df.empty:
             raise ValueError("No player ID found")
 
-        player_id = pid_df.iloc[0]["key_mlbam"]
+        mlbam_id = safe_player_lookup(player_name)
         df = statcast_batter("2024-03-01", "2024-10-01", player_id)
         games = df.shape[0]
         hr = df[df["events"] == "home_run"].shape[0]
@@ -83,10 +95,10 @@ def get_batter_stats(player_name):
 def get_pitcher_stats(player_name):
     try:
         # Try live data
-        pid_df = playerid_lookup(*player_name.split())
+        pid_df = safe_player_lookup(player_name)
         if pid_df.empty:
             raise ValueError("Player not found in lookup")
-        player_id = pid_df.iloc[0]["key_mlbam"]
+        mlbam_id = safe_player_lookup(player_name)
         stats = pitching_stats(player_id)
         return {
             "K/9": float(stats.get("k_per_9", 0)),
