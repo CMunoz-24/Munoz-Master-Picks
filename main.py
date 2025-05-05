@@ -385,19 +385,7 @@ def game_detail(game_id):
     game_predictions = predict_game_outcome(game)
     game["GamePredictions"] = game_predictions
 
-    return render_template("game_detail.html", game={
-        "teams": game.get("teams", "N/A"),
-        "date": game.get("date", "N/A"),
-        "ml": game.get("ml", "N/A"),
-        "spread": game.get("spread", "N/A"),
-        "ou": game.get("ou", "N/A"),
-        "batters": game.get("batters", []),
-        "pitchers": game.get("pitchers", []),
-        "lineups": game.get("lineups", {}),
-        "probable_pitchers": game.get("probable_pitchers", {}),
-        "weather": weather,
-        "game_predictions": game.get("GamePredictions", {})
-    })
+    return render_template("game_detail.html", game=game)
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
