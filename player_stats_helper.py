@@ -3,30 +3,102 @@
 import requests
 import pandas as pd
 import requests
+from pybaseball import playerid_lookup, statcast_batter
 
-def get_vs_pitcher_history(batter_name, pitcher_name):
+def get_batter_vs_pitcher(batter_name, pitcher_name):
     try:
-        df = pd.read_csv("data/batter_vs_pitcher.csv")  # You must generate or download this dataset
+        df = pd.read_csv("data/batter_vs_pitcher.csv")  # Must match project path
+        batter_name_clean = batter_name.strip().lower()
+        pitcher_name_clean = pitcher_name.strip().lower()
+        df["Batter_cleaned"] = df["Batter"].str.strip().str.lower()
+        df["Pitcher_cleaned"] = df["Pitcher"].str.strip().str.lower()
         match = df[
-            (df["Batter"].str.lower() == batter_name.lower()) &
-            (df["Pitcher"].str.lower() == pitcher_name.lower())
+            (df["Batter_cleaned"] == batter_name_clean) &
+            (df["Pitcher_cleaned"] == pitcher_name_clean)
         ]
-        if match.empty:
-            return None
-
-        row = match.iloc[0]
-        return {
-            "AB": int(row.get("AB", 0)),
-            "H": int(row.get("H", 0)),
-            "HR": int(row.get("HR", 0)),
-            "BB": int(row.get("BB", 0)),
-            "K": int(row.get("K", 0)),
-            "BA": round(row.get("H", 0) / row.get("AB", 1), 3)
-        }
+        if not match.empty:
+            return match.iloc[0].to_dict()
+        return None
     except Exception as e:
         print(f"[ERROR] Batter vs Pitcher data missing or broken: {e}")
         return None
 
+def get_batter_stats(player_name):
+    try:
+        pid_df = playerid_lookup(*player_name.split())
+        if pid_df.empty:
+            raise ValueError("No player ID found")
+
+        player_id = pid_df.iloc[0]["key_mlbam"]
+        df = statcast_batter("2024-03-01", "2024-10-01", player_id)
+        games = df.shape[0]
+        hr = df[df["events"] == "home_run"].shape[0]
+        hits = df[df["events"].isin(["single", "double", "triple", "home_run"])].shape[0]
+        strikeouts = df[df["events"] == "strikeout"].shape[0]
+        walks = df[df["events"] == "walk"].shape[0]
+        at_bats = df.shape[0]
+
+        return {
+            "G": games,
+            "AB": at_bats,
+            "H": hits,
+            "HR": hr,
+            "K": strikeouts,
+            "BB": walks
+        }
+
+    except Exception:
+        # Fallback to CSV if pybaseball fails
+        fallback_df = pd.read_csv("data/fallback_stats.csv")
+
+        # Normalize player names for matching
+        fallback_df["Name_cleaned"] = fallback_df["Name"].str.strip().str.lower()
+        player_name_clean = player_name.strip().lower()
+
+        match = fallback_df[fallback_df["Name_cleaned"] == player_name_clean]
+        if not match.empty:
+            stats = match.iloc[0]
+            return {
+                "G": stats.get("G", 0),
+                "AB": stats.get("AB", 0),
+                "H": stats.get("H", 0),
+                "HR": stats.get("HR", 0),
+                "K": stats.get("K", 0),
+                "BB": stats.get("BB", 0)
+            }
+        else:
+            print(f"[FALLBACK ERROR] No match for: {player_name}")
+            return None
+        
+def get_pitcher_stats(player_name):
+    try:
+        # Try live data
+        pid_df = playerid_lookup(*player_name.split())
+        if pid_df.empty:
+            raise ValueError("Player not found in lookup")
+        player_id = pid_df.iloc[0]["key_mlbam"]
+        stats = pitching_stats(player_id)
+        return {
+            "K/9": float(stats.get("k_per_9", 0)),
+            "ERA": float(stats.get("era", 0)),
+            "IP": float(stats.get("ip", 0))
+        }
+    except Exception as e:
+        print(f"[FALLBACK ERROR] {e}")
+        try:
+            fallback = pd.read_csv("data/fallback_stats.csv")
+            fallback["name_clean"] = fallback["Name"].str.lower().str.strip()
+            match = fallback[fallback["name_clean"] == player_name.lower().strip()]
+            if not match.empty:
+                row = match.iloc[0]
+                return {
+                    "K/9": float(row.get("K_per_9", 0)),
+                    "ERA": float(row.get("ERA", 0)),
+                    "IP": float(row.get("IP", 0))
+                }
+        except Exception as fe:
+            print(f"[FALLBACK CSV ERROR] {fe}")
+        return {"K/9": 0, "ERA": 0, "IP": 0}
 
 def fetch_pitcher_data_by_name(name):
     try:

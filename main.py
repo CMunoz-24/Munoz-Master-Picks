@@ -168,7 +168,14 @@ def get_todays_games():
 
                                 park_name = game["teams"]["home"]["team"]["name"]
                                 home_team = park_name  # home team name is the stadium owner
-                                park_factors = get_park_adjustments(park_name)
+                                # Defensive fix for park_name issues
+                                if isinstance(park_name, dict):
+                                    print(f"[ERROR] park_name was a dict: {park_name}")
+                                    park_name = park_name.get("name") or "Unknown"
+
+                                print(f"[DEBUG] park_name: {park_name}")
+                                park_factors = get_park_adjustments(str(park_name))
+
                                 weather_adj = get_weather_adjustments(park_name)
 
                                 probabilities = generate_pitcher_probabilities(
