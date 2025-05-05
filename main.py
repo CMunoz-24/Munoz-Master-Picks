@@ -15,7 +15,6 @@ from probability_engine import get_hitter_probabilities, get_pitcher_probabiliti
 from utils.weather_helper import get_combined_weather
 from utils.weather import get_weather_adjustments
 from matchup_engine import generate_adjusted_batter_probabilities, generate_batter_recommendations
-from player_stats import get_player_stats
 from pitcher_engine import generate_pitcher_probabilities, generate_pitcher_recommendations
 from utils.weather_teams import get_coordinates_for_team
 from player_stats_helper import get_vs_pitcher_history
