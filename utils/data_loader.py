@@ -28,3 +28,10 @@ def get_live_or_fallback_data():
         return {"primary": "Data from Odds + MLB Stats API"}
     else:
         return get_combined_fallback_data()
+    
+def load_fallback_stats():
+    try:
+        return pd.read_csv("data/fallback_stats.csv")
+    except FileNotFoundError:
+        print("[ERROR] Fallback stats file missing.")
+        return pd.DataFrame()

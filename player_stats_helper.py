@@ -109,3 +109,10 @@ def get_pitcher_stats_by_name(name):
         "handedness": data.get("throws", "R")
     }
 
+def load_batter_vs_pitcher_data():
+    try:
+        return pd.read_csv("data/batter_vs_pitcher.csv")
+    except FileNotFoundError:
+        print("[ERROR] Batter vs. Pitcher data file missing.")
+        return pd.DataFrame()
+

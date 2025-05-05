@@ -166,7 +166,8 @@ def get_todays_games():
                                     print(f"[LINEUP ERROR] Could not evaluate opposing lineup: {e}")
                                     lineup_avg = None
 
-                                park_name = game["teams"].split(" vs ")[1]
+                                park_name = game["teams"]["home"]["team"]["name"]
+                                home_team = park_name  # home team name is the stadium owner
                                 park_factors = get_park_adjustments(park_name)
                                 weather_adj = get_weather_adjustments(park_name)
 
@@ -201,7 +202,16 @@ def get_todays_games():
                                     pitcher_stats = {}
 
                                 vs_history = get_vs_pitcher_history(full_name, opposing_pitcher)
+                                # 🏟️ Get ballpark and weather factors
                                 park_name = game.get("venue", {}).get("name", "default")
+                                from utils.park_factors import get_park_adjustments
+                                from utils.weather import get_weather_adjustments
+
+                                print(f"[DEBUG] Park detected: {park_name}")  # Optional debug
+
+                                park_factors = get_park_adjustments(park_name)
+                                weather_adj = get_weather_adjustments(park_name)
+
                                 park_factor = get_park_adjustments(park_name)
                                 home_team = game["teams"].split(" vs ")[1]
                                 weather_adj = get_weather_adjustments(home_team).get("adjustments", {})
@@ -397,7 +407,13 @@ def stats_page():
 
     return render_template("stats.html", msf_stats=msf_table, fg_stats=fg_table)
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+import sys
 
+if __name__ == '__main__':
+    port = 5000  # default
+    if len(sys.argv) > 1 and sys.argv[1].startswith("--port="):
+        try:
+            port = int(sys.argv[1].split("=")[1])
+        except ValueError:
+            print("Invalid port. Using default 5000.")
+    app.run(host="0.0.0.0", port=port, debug=True)
