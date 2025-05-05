@@ -1,6 +1,5 @@
 
 import requests
-from utils.weather_teams import get_coordinates_for_team
 import os
 
 # For Weatherstack API
