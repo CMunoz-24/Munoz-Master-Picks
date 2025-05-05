@@ -5,6 +5,40 @@ import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
 
+# Map team name to actual stadium name for park factors
+team_to_stadium = {
+    "Arizona Diamondbacks": "Chase Field",
+    "Atlanta Braves": "Truist Park",
+    "Baltimore Orioles": "Oriole Park at Camden Yards",
+    "Boston Red Sox": "Fenway Park",
+    "Chicago White Sox": "Guaranteed Rate Field",
+    "Chicago Cubs": "Wrigley Field",
+    "Cincinnati Reds": "Great American Ball Park",
+    "Cleveland Guardians": "Progressive Field",
+    "Colorado Rockies": "Coors Field",
+    "Detroit Tigers": "Comerica Park",
+    "Houston Astros": "Minute Maid Park",
+    "Kansas City Royals": "Kauffman Stadium",
+    "Los Angeles Angels": "Angel Stadium",
+    "Los Angeles Dodgers": "Dodger Stadium",
+    "Miami Marlins": "loanDepot park",
+    "Milwaukee Brewers": "American Family Field",
+    "Minnesota Twins": "Target Field",
+    "New York Yankees": "Yankee Stadium",
+    "New York Mets": "Citi Field",
+    "Oakland Athletics": "Sutter Health Park",  # ➤ Temporary (Sacramento)
+    "Philadelphia Phillies": "Citizens Bank Park",
+    "Pittsburgh Pirates": "PNC Park",
+    "San Diego Padres": "Petco Park",
+    "San Francisco Giants": "Oracle Park",
+    "Seattle Mariners": "T-Mobile Park",
+    "St. Louis Cardinals": "Busch Stadium",
+    "Tampa Bay Rays": "George M. Steinbrenner Field",  # ➤ Temporary (Tampa)
+    "Texas Rangers": "Globe Life Field",
+    "Toronto Blue Jays": "Rogers Centre",
+    "Washington Nationals": "Nationals Park"
+}
+
 # 🔌 Internal modules
 from utils.data_loader import get_live_or_fallback_data
 from data.cache.odds_cache_helper import get_cached_odds, save_odds_cache
