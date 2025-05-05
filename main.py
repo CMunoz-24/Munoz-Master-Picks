@@ -250,6 +250,7 @@ def game_detail(game_id):
     from utils.weather import get_weather_adjustments
     from predictor import predict_game_outcome
 
+    games = get_cached_or_fresh_games()
     game = next((g for g in games if int(g["id"]) == int(game_id)), None)
     if not game:
         return "Game not found", 404
