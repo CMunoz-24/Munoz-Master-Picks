@@ -1,4 +1,3 @@
-from park_factors import get_park_adjustments
 from flask import Flask, render_template, request, redirect, session, url_for
 import os
 import requests
