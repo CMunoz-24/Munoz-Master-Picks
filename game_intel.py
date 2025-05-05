@@ -34,7 +34,7 @@ def score_pitching(pitcher_stats, bullpen_stats):
 
 def adjust_for_park_and_weather(score, park_name, home_team):
     park = get_park_adjustments(park_name)
-    weather = get_weather_adjustments(home_team).get("adjustments", {})
+    weather = get_weather_adjustments(park.get("name", ""))
 
     if park["HR"] > 1.10:
         score += 2
