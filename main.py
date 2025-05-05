@@ -251,7 +251,7 @@ def game_detail(game_id):
     from main import get_cached_or_fresh_games
     
     # Find game from current games_today list
-    games_today, _ = get_cached_or_fresh_games()
+    games_today = get_cached_or_fresh_games()
     game = next((g for g in games_today if int(g["id"]) == int(game_id)), None)
     if not game:
         return "Game not found", 404
