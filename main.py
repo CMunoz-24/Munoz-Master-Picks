@@ -7,6 +7,10 @@ from datetime import datetime
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
+from datetime import datetime, timedelta
+
+games_today = []
+last_fetched = None
 
 # Map team name to actual stadium name for park factors
 stadium_map = {
@@ -77,6 +81,20 @@ PASSWORD = os.getenv("APP_PASSWORD", "munoz123")
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 ODDS_API_URL = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds"
 MLB_API_URL = "https://statsapi.mlb.com/api/v1/schedule"
+
+def get_cached_or_fresh_games():
+    global games_today, last_fetched
+    now = datetime.now()
+
+    if not games_today or not last_fetched or (now - last_fetched > timedelta(minutes=15)):
+        print("[INFO] Refreshing games_today cache")
+        from utils.game_processing import get_todays_games
+        games_today, _ = get_todays_games()
+        last_fetched = now
+    else:
+        print("[INFO] Using cached games_today")
+
+    return games_today
 
 def get_todays_games():
     from datetime import datetime
